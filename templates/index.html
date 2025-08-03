@@ -60,7 +60,9 @@
                     theme: savedTheme === 'dark' ? 'dark' : 'default',
                     securityLevel: 'loose'
                 });
-                render(); // Initial render
+                
+                // Load the most recent diagram if available
+                loadMostRecentDiagram();
             } catch (error) {
                 console.error('Error initializing Mermaid:', error);
                 document.getElementById('preview').innerHTML = '<p style="color:red">Failed to initialize Mermaid library</p>';
@@ -164,14 +166,45 @@
             saveBtn.addEventListener('click', function() {
                 const diagramId = document.getElementById('diagram-id').value;
                 if (diagramId) {
-                    // If we're editing an existing diagram, pre-fill the form
-                    fetch(`/api/diagrams/${diagramId}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            document.getElementById('diagram-title').value = data.title;
-                            document.getElementById('diagram-tags').value = data.tags || '';
-                        })
-                        .catch(error => console.error('Error fetching diagram:', error));
+                    // Load the most recent diagram if available
+                    function loadMostRecentDiagram() {
+                        fetch('/api/diagrams/recent')
+                            .then(response => {
+                                if (!response.ok) {
+                                    // If no diagrams exist (404) or other error, load default diagram
+                                    loadDefaultDiagram();
+                                    throw new Error('No diagrams found or error occurred');
+                                }
+                                return response.json();
+                            })
+                            .then(data => {
+                                if (data) {
+                                    document.getElementById('editor').value = data.content;
+                                    document.getElementById('diagram-id').value = data.id;
+                                    render();
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error loading most recent diagram:', error);
+                                // Ensure default diagram is loaded if there was an error
+                                if (document.getElementById('editor').value === 'Loading...') {
+                                    loadDefaultDiagram();
+                                }
+                            });
+                    }
+                    
+                    // Load default diagram
+                    function loadDefaultDiagram() {
+                        const defaultDiagram = `graph TD
+    A[Start] --> B{Is it working?}
+    B -->|Yes| C[Great!]
+    B -->|No| D[Debug]
+    D --> B`;
+                        
+                        document.getElementById('editor').value = defaultDiagram;
+                        document.getElementById('diagram-id').value = '';
+                        render();
+                    }
                 } else {
                     // Clear form for new diagram
                     document.getElementById('diagram-title').value = '';
@@ -354,6 +387,46 @@
                 }
             });
         });
+        
+        // Load the most recent diagram if available
+        function loadMostRecentDiagram() {
+            fetch('/api/diagrams/recent')
+                .then(response => {
+                    if (!response.ok) {
+                        // If no diagrams exist (404) or other error, load default diagram
+                        loadDefaultDiagram();
+                        throw new Error('No diagrams found or error occurred');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data) {
+                        document.getElementById('editor').value = data.content;
+                        document.getElementById('diagram-id').value = data.id;
+                        render();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading most recent diagram:', error);
+                    // Ensure default diagram is loaded if there was an error
+                    if (document.getElementById('editor').value === 'Loading...') {
+                        loadDefaultDiagram();
+                    }
+                });
+        }
+        
+        // Load default diagram
+        function loadDefaultDiagram() {
+            const defaultDiagram = `graph TD
+    A[Start] --> B{Is it working?}
+    B -->|Yes| C[Great!]
+    B -->|No| D[Debug]
+    D --> B`;
+            
+            document.getElementById('editor').value = defaultDiagram;
+            document.getElementById('diagram-id').value = '';
+            render();
+        }
         
         // Initialize resizable divider functionality
         function initResizer() {
