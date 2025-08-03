@@ -169,3 +169,23 @@ def delete_diagram(diagram_id: int) -> bool:
     conn.close()
     
     return success
+
+def get_most_recent_diagram() -> Optional[Dict[str, Any]]:
+    """
+    Get the most recently updated diagram.
+    
+    Returns:
+        A dictionary with the diagram data or None if no diagrams exist
+    """
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    
+    cursor.execute("SELECT * FROM diagrams ORDER BY updated_at DESC LIMIT 1")
+    row = cursor.fetchone()
+    
+    conn.close()
+    
+    if row:
+        return dict(row)
+    return None

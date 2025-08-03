@@ -89,6 +89,16 @@ async def get_diagram(diagram_id: int):
         raise HTTPException(status_code=404, detail="Diagram not found")
     return diagram
 
+@app.get("/api/diagrams/recent", response_model=DiagramResponse)
+async def get_recent_diagram():
+    try:
+        diagram = database.get_most_recent_diagram()
+        if not diagram:
+            raise HTTPException(status_code=404, detail="No diagrams found")
+        return diagram
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.put("/api/diagrams/{diagram_id}", response_model=DiagramResponse)
 async def update_diagram(diagram_id: int, diagram: DiagramUpdate):
     success = database.update_diagram(diagram_id, diagram.title, diagram.content, diagram.tags)
