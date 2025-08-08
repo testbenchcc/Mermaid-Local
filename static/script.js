@@ -113,31 +113,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function render() {
     const editor = document.getElementById('editor');
-    
-    // Get the text content from the editor
-    let code = editor.textContent; // Use textContent for contenteditable div
-    
-    // Fix for Docker: ensure proper line breaks
-    // First normalize line breaks to \n
-    code = code.replace(/\r\n/g, '\n');
-    code = code.replace(/\r/g, '\n');
-    
-    // Handle case where diagram is all on one line
-    // This attempts to intelligently split diagram code by inserting newlines
-    if (!code.includes('\n') && code.length > 50) {
-        console.log('Detected single line diagram, attempting to insert newlines');
-        // Insert newlines after common diagram markers
-        code = code.replace(/([\s\t])(graph|flowchart|stateDiagram|sequenceDiagram|classDiagram|erDiagram)([\s\t-])/g, '$1$2$3\n');
-        
-        // Insert newlines after state transitions
-        code = code.replace(/([^\s])\s*(-->|==>)\s*([^\s])/g, '$1 $2 $3\n');
-        
-        // Insert newlines after square brackets that likely end a line
-        code = code.replace(/\]\s+/g, ']\n');
-        
-        console.log('Inserted newlines in diagram code');
-    }
-    
+    const code = editor.innerText; // Use innerText for better newline handling
     const preview = document.getElementById('preview');
     
     console.log('Rendering Mermaid diagram with code:', code.substring(0, 50) + '...');
@@ -148,7 +124,7 @@ function render() {
     // Create mermaid element
     const mermaidDiv = document.createElement('div');
     mermaidDiv.className = 'mermaid';
-    mermaidDiv.textContent = code;
+    mermaidDiv.textContent = normalizeNewlines(code);
     
     preview.appendChild(mermaidDiv);
     
@@ -250,7 +226,7 @@ document.addEventListener('DOMContentLoaded', function() {
     saveDiagramBtn.addEventListener('click', function() {
         console.log('Save button clicked');
         const title = document.getElementById('diagram-title').value;
-        const content = document.getElementById('editor').textContent; // Use textContent for contenteditable div
+        const content = document.getElementById('editor').innerText; // Use innerText for better newline handling
         const tags = document.getElementById('diagram-tags').value;
         const diagramId = document.getElementById('diagram-id').value;
         
@@ -341,14 +317,40 @@ function loadDiagrams() {
 }
 
 // Render diagram list
+// Function to normalize newlines across different platforms
+function normalizeNewlines(text) {
+    // First replace all \r\n (Windows) with \n
+    if (!text) return '';
+    
+    // Replace all Windows line breaks with Unix line breaks
+    let normalized = text.replace(/\r\n/g, '\n');
+    
+    // Replace any remaining \r (old Mac) with \n
+    normalized = normalized.replace(/\r/g, '\n');
+    
+    // Make sure there's at least a newline between diagram elements
+    // when the input is one long line (which can happen in Docker)
+    if (normalized.indexOf('\n') === -1) {
+        // For mermaid diagrams, add newlines after common syntax elements
+        normalized = normalized.replace(/([;{}])/g, '$1\n');
+        // For state diagrams specifically
+        normalized = normalized.replace(/(-->)/g, '$1\n');
+    }
+    
+    return normalized;
+}
+
 // Load a specific diagram by ID
 function loadDiagram(id) {
     fetch(`/api/diagrams/${id}`)
         .then(response => response.json())
         .then(data => {
-            // Set the editor content
+            // Set the editor content with proper newline handling
             const editor = document.getElementById('editor');
-            editor.textContent = data.content; // Use textContent for contenteditable div
+            const normalizedContent = normalizeNewlines(data.content);
+            
+            // Use textContent to set the initial content
+            editor.textContent = normalizedContent;
             
             // Set the hidden diagram ID
             document.getElementById('diagram-id').value = data.id;
@@ -434,7 +436,8 @@ function loadMostRecentDiagram() {
         .then(data => {
             if (data) {
                 const editor = document.getElementById('editor');
-                editor.textContent = data.content; // Use textContent for contenteditable div
+                const normalizedContent = normalizeNewlines(data.content);
+                editor.textContent = normalizedContent;
                 document.getElementById('diagram-id').value = data.id;
                 
                 // Update node map for highlighting
@@ -463,7 +466,7 @@ B -->|No| D[Debug]
 D --> B`;
     
     const editor = document.getElementById('editor');
-    editor.textContent = defaultDiagram; // Use textContent for contenteditable div
+    editor.textContent = normalizeNewlines(defaultDiagram); // Normalize newlines
     document.getElementById('diagram-id').value = '';
     
     // Update node map for highlighting
