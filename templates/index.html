@@ -45,6 +45,9 @@
     <script src="/static/svg-events.js?v=20250807-3"></script>
     <script src="/static/svg-animations.js?v=20250807-3"></script>
     <script src="/static/editor-node-highlight.js?v=20250807-3"></script>
+    <script src="/static/context-menu.js?v=20250807-1"></script>
+    <script src="/static/connect-new-node.js?v=20250807-1"></script>
+    <script src="/static/connect-existing-node.js?v=20250807-1"></script>
     <script src="/static/script.js?v=20250807-3"></script>
     
     <!-- Save Diagram Modal -->
@@ -85,6 +88,48 @@
                 </div>
                 <div id="diagram-list" class="diagram-list">
                     <!-- Diagrams will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Connect New Node Modal -->
+    <div id="connect-new-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Connect New Node</h2>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="connect-new-name">Node name:</label>
+                    <input type="text" id="connect-new-name" class="form-control" placeholder="Enter node name">
+                </div>
+                <div class="form-actions" style="display:flex; gap:10px; justify-content:flex-end;">
+                    <button id="connect-new-cancel" type="button">Cancel</button>
+                    <button id="connect-new-submit" type="button">Add</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Connect Existing Node Modal -->
+    <div id="connect-existing-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Connect to Existing Node</h2>
+            </div>
+            <div class="modal-body">
+                <div class="form-group" style="display:flex; gap:8px; align-items:center;">
+                    <input type="text" id="connect-existing-filter" class="form-control" placeholder="Filter nodes..." style="flex:1; min-width:0;">
+                    <button id="connect-existing-refresh" type="button">Refresh</button>
+                </div>
+                <div class="form-group">
+                    <label for="connect-existing-list">Select a node:</label>
+                    <select id="connect-existing-list" size="10" class="form-control" style="width:100%"></select>
+                </div>
+                <div class="form-actions" style="display:flex; gap:10px; justify-content:flex-end;">
+                    <button id="connect-existing-cancel" type="button">Cancel</button>
+                    <button id="connect-existing-submit" type="button">Connect</button>
                 </div>
             </div>
         </div>
