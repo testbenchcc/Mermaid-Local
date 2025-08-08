@@ -51,6 +51,12 @@ document.addEventListener('DOMContentLoaded', function() {
         autoRenderToggle.checked = savedAutoRender === 'true';
     }
     
+    // Hook Manual Render button
+    const renderBtn = document.getElementById('render-btn');
+    if (renderBtn) {
+        renderBtn.addEventListener('click', () => render());
+    }
+
     // Add event listener for editor changes
     let debounceTimer;
     editor.addEventListener('input', function() {
@@ -89,7 +95,31 @@ function render() {
     try {
         // Render diagram
         mermaid.init(undefined, '.mermaid');
+        
+        // After rendering is complete, we need to manually process the SVG
+        // This ensures the interactions work like in sampleSVG.html
+        setTimeout(() => {
+            const svgs = document.querySelectorAll('#preview svg');
+            console.log('Found SVGs after render:', svgs.length);
+            
+            svgs.forEach(svg => {
+                // Add statediagram class to match sampleSVG.html
+                if (!svg.classList.contains('statediagram')) {
+                    svg.classList.add('statediagram');
+                }
+                
+                // Force manual attachment
+                if (window.SVGInteractions) {
+                    console.log('Attaching interactions to SVG:', svg.id);
+                    window.SVGInteractions.attachTo(svg);
+                    window.SVGInteractions.attachLoggerTo(svg);
+                } else {
+                    console.warn('SVGInteractions not available');
+                }
+            });
+        }, 100); // Small delay to ensure rendering is complete
     } catch (error) {
+        console.error('Mermaid render error:', error);
         preview.innerHTML = `<p style="color:red">Error rendering diagram: ${error.message}</p>`;
     }
 }
