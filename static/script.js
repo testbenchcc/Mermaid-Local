@@ -186,15 +186,29 @@ document.addEventListener('DOMContentLoaded', function() {
     // Open save modal
     saveBtn.addEventListener('click', function() {
         const diagramId = document.getElementById('diagram-id').value;
+        
         if (diagramId) {
-            document.getElementById('diagram-title').value = '';
-            document.getElementById('diagram-tags').value = '';
+            // Fetch existing diagram data to populate the form
+            fetch(`/api/diagrams/${diagramId}`)
+                .then(response => response.json())
+                .then(diagram => {
+                    document.getElementById('diagram-title').value = diagram.title || '';
+                    document.getElementById('diagram-tags').value = diagram.tags || '';
+                    saveModal.style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Error fetching diagram details:', error);
+                    // Still show modal with empty form if fetch fails
+                    document.getElementById('diagram-title').value = '';
+                    document.getElementById('diagram-tags').value = '';
+                    saveModal.style.display = 'block';
+                });
         } else {
             // Clear form for new diagram
             document.getElementById('diagram-title').value = '';
             document.getElementById('diagram-tags').value = '';
+            saveModal.style.display = 'block';
         }
-        saveModal.style.display = 'block';
     });
     
     // Open load modal and load diagrams
@@ -203,14 +217,8 @@ document.addEventListener('DOMContentLoaded', function() {
         loadDiagrams();
     });
     
-    // Close modals
-    saveClose.addEventListener('click', function() {
-        saveModal.style.display = 'none';
-    });
-    
-    loadClose.addEventListener('click', function() {
-        loadModal.style.display = 'none';
-    });
+    // We removed the close buttons, so these event listeners are no longer needed
+    // Now we only close by clicking outside the modal or with Escape key
     
     // Close modals when clicking outside
     window.addEventListener('click', function(event) {
@@ -219,6 +227,18 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         if (event.target === loadModal) {
             loadModal.style.display = 'none';
+        }
+    });
+    
+    // Close modals with Escape key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            if (saveModal.style.display === 'block') {
+                saveModal.style.display = 'none';
+            }
+            if (loadModal.style.display === 'block') {
+                loadModal.style.display = 'none';
+            }
         }
     });
     
