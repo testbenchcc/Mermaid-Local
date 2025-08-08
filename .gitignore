@@ -1,2 +1,3 @@
-diagrams.db
+/data
 *.db
+.prettierrc

@@ -455,7 +455,7 @@
     // These are the actual events used in the original code
     ['mouseenter','mouseleave','click','dblclick','contextmenu'].forEach(ev => {
       svg.addEventListener(`svgitem:${ev}`, e => {
-        console.log('SVG event captured:', `svgitem:${ev}`, e.detail);
+        // console.log('SVG event captured:', `svgitem:${ev}`, e.detail);
         const { kind, id } = e.detail;
         const line = document.createElement('div');
         line.textContent = `[${ev}] ${kind} ${id || ''}`;

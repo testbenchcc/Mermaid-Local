@@ -1,18 +1,16 @@
-version: "3.9"
-
 services:
   mermaid-local:
-    image: mermaid-local:latest          # name you will see in Portainer
+    image: mermaid-local:latest
     build:
-      context: https://github.com/testbenchcc/Mermaid-Local.git   # Portainer clones the repo
-      dockerfile: Dockerfile            # see the file below
+      context: https://github.com/testbenchcc/Mermaid-Local.git
+      dockerfile: Dockerfile
     container_name: mermaid-local
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --workers 4
     ports:
-      - "8080:8000"                     # http://<docker-host>:8080
+      - "8080:8000"
     restart: unless-stopped
-    volumes:
-      - /home/tbrinkhuis/mermaidCharts.db:/app/diagrams.db
     environment:
       - PYTHONUNBUFFERED=1
-      # add any extra ENV VARS your code expects here
+      - DB_PATH=/app/data/diagrams.db
+    volumes:
+      - /home/tbrinkhuils/Mermaid-Local:/app/data

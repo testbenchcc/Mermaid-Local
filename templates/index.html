@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Local Mermaid Studio</title>
-    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="/static/styles.css?v=20250807-2">
 </head>
 <body>
     <header>
@@ -26,7 +26,7 @@
         <!-- Hidden input to store the current diagram ID -->
         <input type="hidden" id="diagram-id" value="">
         <div class="editor-pane">
-            <textarea id="editor">Loading...</textarea>
+            <div id="editor" contenteditable="true" class="code-editor" spellcheck="false">Loading...</div>
             <div class="controls">
                 <button id="render-btn">Manual Render</button>
                 <div class="auto-render">
@@ -41,9 +41,10 @@
         </div>
     </div>
 
-    <script src="/static/mermaid.min.js"></script>
-    <script src="/static/svg-interactions.js"></script>
-    <script src="/static/script.js"></script>
+    <script src="/static/mermaid.min.js?v=20250807-2"></script>
+    <script src="/static/svg-interactions.js?v=20250807-2"></script>
+    <script src="/static/editor-node-highlight.js?v=20250807-2"></script>
+    <script src="/static/script.js?v=20250807-2"></script>
     
     <!-- Save Diagram Modal -->
     <div id="save-modal" class="modal">

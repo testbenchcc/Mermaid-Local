@@ -8,6 +8,22 @@ document.addEventListener('DOMContentLoaded', function() {
     document.documentElement.setAttribute('data-theme', savedTheme);
     document.getElementById('theme-toggle').checked = savedTheme === 'dark';
     
+    // Ensure the editor has content if it's showing 'Loading...'
+    const editorElement = document.getElementById('editor');
+    if (editorElement.textContent === 'Loading...') {
+        console.log('Editor has default Loading... text, setting default diagram');
+        // Set a default diagram immediately
+        editorElement.textContent = 'stateDiagram-v2\n    [*] --> Still\n    Still --> [*]\n    Still --> Moving\n    Moving --> Still\n    Moving --> Crash\n    Crash --> [*]';
+        
+        // Update node map for highlighting
+        if (window.mapNodesToText) {
+            setTimeout(() => window.mapNodesToText(editorElement.textContent), 100);
+        }
+        
+        // Render the initial diagram immediately
+        setTimeout(() => render(), 150);
+    }
+    
     // Initialize mermaid with the appropriate theme
     try {
         mermaid.initialize({ 
@@ -16,7 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
             securityLevel: 'loose'
         });
         
-        // Load the most recent diagram if available
+        // Load the most recent diagram if available or use the default already set
         loadMostRecentDiagram();
     } catch (error) {
         console.error('Error initializing Mermaid:', error);
@@ -69,6 +85,23 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
+    // Add event listeners for contenteditable-specific events
+    editor.addEventListener('keydown', function(e) {
+        // Handle tab key to insert spaces instead of changing focus
+        if (e.key === 'Tab') {
+            e.preventDefault();
+            document.execCommand('insertText', false, '    ');
+        }
+        
+        // Trigger render after certain keystrokes
+        if (autoRenderToggle.checked && (e.key === 'Enter' || e.key === ';')) {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(function() {
+                render();
+            }, 300);
+        }
+    });
+    
     // Save auto-render preference when changed
     autoRenderToggle.addEventListener('change', function() {
         localStorage.setItem('autoRender', this.checked);
@@ -79,8 +112,11 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function render() {
-    const code = document.getElementById('editor').value;
+    const editor = document.getElementById('editor');
+    const code = editor.textContent; // Use textContent for contenteditable div
     const preview = document.getElementById('preview');
+    
+    console.log('Rendering Mermaid diagram with code:', code.substring(0, 50) + '...');
     
     // Clear previous content
     preview.innerHTML = '';
@@ -141,7 +177,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // New diagram button - clear editor and reset diagram ID
     newBtn.addEventListener('click', function() {
-        document.getElementById('editor').value = '';
+        document.getElementById('editor').textContent = ''; // Use textContent for contenteditable div
         document.getElementById('diagram-id').value = '';
         render();
         alert('New diagram created! You can now edit and save it with a new name.');
@@ -190,7 +226,7 @@ document.addEventListener('DOMContentLoaded', function() {
     saveDiagramBtn.addEventListener('click', function() {
         console.log('Save button clicked');
         const title = document.getElementById('diagram-title').value;
-        const content = document.getElementById('editor').value;
+        const content = document.getElementById('editor').textContent; // Use textContent for contenteditable div
         const tags = document.getElementById('diagram-tags').value;
         const diagramId = document.getElementById('diagram-id').value;
         
@@ -281,6 +317,32 @@ function loadDiagrams() {
 }
 
 // Render diagram list
+// Load a specific diagram by ID
+function loadDiagram(id) {
+    fetch(`/api/diagrams/${id}`)
+        .then(response => response.json())
+        .then(data => {
+            // Set the editor content
+            const editor = document.getElementById('editor');
+            editor.textContent = data.content; // Use textContent for contenteditable div
+            
+            // Set the hidden diagram ID
+            document.getElementById('diagram-id').value = data.id;
+            
+            // Update node map for highlighting after loading
+            if (window.mapNodesToText) {
+                setTimeout(() => window.mapNodesToText(editor.textContent), 100);
+            }
+            
+            // Render the diagram
+            render();
+            
+            // Close the modal
+            document.getElementById('load-modal').style.display = 'none';
+        })
+        .catch(error => console.error('Error loading diagram:', error));
+}
+
 function renderDiagramList(diagrams) {
     const diagramList = document.getElementById('diagram-list');
     diagramList.innerHTML = '';
@@ -327,10 +389,7 @@ function renderDiagramList(diagrams) {
         
         // Load diagram when clicked
         item.addEventListener('click', function() {
-            document.getElementById('editor').value = this.dataset.content;
-            document.getElementById('diagram-id').value = this.dataset.id;
-            render();
-            document.getElementById('load-modal').style.display = 'none';
+            loadDiagram(this.dataset.id);
         });
         
         diagramList.appendChild(item);
@@ -350,15 +409,22 @@ function loadMostRecentDiagram() {
         })
         .then(data => {
             if (data) {
-                document.getElementById('editor').value = data.content;
+                const editor = document.getElementById('editor');
+                editor.textContent = data.content; // Use textContent for contenteditable div
                 document.getElementById('diagram-id').value = data.id;
+                
+                // Update node map for highlighting
+                if (window.mapNodesToText) {
+                    setTimeout(() => window.mapNodesToText(editor.textContent), 100);
+                }
+                
                 render();
             }
         })
         .catch(error => {
             console.error('Error loading most recent diagram:', error);
             // Ensure default diagram is loaded if there was an error
-            if (document.getElementById('editor').value === 'Loading...') {
+            if (document.getElementById('editor').textContent === 'Loading...') {
                 loadDefaultDiagram();
             }
         });
@@ -372,8 +438,15 @@ B -->|Yes| C[Great!]
 B -->|No| D[Debug]
 D --> B`;
     
-    document.getElementById('editor').value = defaultDiagram;
+    const editor = document.getElementById('editor');
+    editor.textContent = defaultDiagram; // Use textContent for contenteditable div
     document.getElementById('diagram-id').value = '';
+    
+    // Update node map for highlighting
+    if (window.mapNodesToText) {
+        setTimeout(() => window.mapNodesToText(editor.textContent), 100);
+    }
+    
     render();
 }
 

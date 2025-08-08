@@ -4,10 +4,14 @@ from datetime import datetime
 from typing import List, Optional, Dict, Any
 
 # Database file path
-DB_PATH = "diagrams.db"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(BASE_DIR, "data")
+DB_PATH = os.path.join(DATA_DIR, "diagrams.db")
 
 def init_db():
     """Initialize the database if it doesn't exist."""
+    # Ensure the data directory exists (fixes Windows 'unable to open database file')
+    os.makedirs(DATA_DIR, exist_ok=True)
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     
@@ -189,3 +193,7 @@ def get_most_recent_diagram() -> Optional[Dict[str, Any]]:
     if row:
         return dict(row)
     return None
+
+if __name__ == "__main__":
+    init_db()
+    print(f"Initialized database at: {DB_PATH}")
