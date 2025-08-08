@@ -110,35 +110,38 @@
         // Special logging for state diagrams
         console.log('Processing state diagram line:', line);
         
-        // First check for transitions which are the most common state diagram patterns
+        // Check for transitions which are the most common state diagram patterns
         // e.g. "Still --> Moving" or "[*] --> Still"
-        const transitionRegex = /\s*([^\s\[]+|\[\*\])\s*(-->|==>)\s*([^\s\[]+|\[\*\])\b/;
-        const transMatch = line.match(transitionRegex);
+        // Using matchAll instead of match to find ALL transitions in a line
+        const transitionRegex = /([^\s\[]+|\[\*\])\s*(-->|==>)\s*([^\s\[]+|\[\*\])\b/g;
+        const transMatches = Array.from(line.matchAll(transitionRegex));
         
-        if (transMatch) {
-          const sourceState = transMatch[1].trim();
-          const targetState = transMatch[3].trim();
-          
-          console.log('Found transition:', sourceState, '-->', targetState);
-          
-          // Map source state if it's not a special marker
-          if (sourceState !== '[*]') { 
-            const sourceChar = line.indexOf(sourceState);
-            nodeToTextMap.set(sourceState, {
-              start: { line: lineIndex, character: sourceChar },
-              end: { line: lineIndex, character: sourceChar + sourceState.length }
-            });
-            console.log('Added state from transition (source):', sourceState, 'at line', lineIndex, 'char', sourceChar);
-          }
-          
-          // Map target state if it's not a special marker
-          if (targetState !== '[*]') { 
-            const targetChar = line.indexOf(targetState);
-            nodeToTextMap.set(targetState, {
-              start: { line: lineIndex, character: targetChar },
-              end: { line: lineIndex, character: targetChar + targetState.length }
-            });
-            console.log('Added state from transition (target):', targetState, 'at line', lineIndex, 'char', targetChar);
+        if (transMatches.length > 0) {
+          for (const transMatch of transMatches) {
+            const sourceState = transMatch[1].trim();
+            const targetState = transMatch[3].trim();
+            
+            console.log('Found transition:', sourceState, '-->', targetState);
+            
+            // Map source state if it's not a special marker
+            if (sourceState !== '[*]') { 
+              const sourceChar = line.indexOf(sourceState, transMatch.index);
+              nodeToTextMap.set(sourceState, {
+                start: { line: lineIndex, character: sourceChar },
+                end: { line: lineIndex, character: sourceChar + sourceState.length }
+              });
+              console.log('Added state from transition (source):', sourceState, 'at line', lineIndex, 'char', sourceChar);
+            }
+            
+            // Map target state if it's not a special marker
+            if (targetState !== '[*]') { 
+              const targetChar = line.indexOf(targetState, transMatch.index);
+              nodeToTextMap.set(targetState, {
+                start: { line: lineIndex, character: targetChar },
+                end: { line: lineIndex, character: targetChar + targetState.length }
+              });
+              console.log('Added state from transition (target):', targetState, 'at line', lineIndex, 'char', targetChar);
+            }
           }
         } 
         // Next check for standalone state definitions
@@ -478,6 +481,10 @@
           highlightTextInEditor(position, editor);
         } else if (nodeId) {
           console.warn('Node ID found but not in text map:', nodeId);
+          // Try remapping nodes before giving up
+          console.log('Forcing node map update and trying again...');
+          mapNodesToText(editor.textContent);
+          
           // For state diagrams, try to strip prefixes like 'state-' that might be in the SVG ID
           if (nodeId.startsWith('state-') || nodeId.includes('-')) {
             // First try just the part after 'state-'
