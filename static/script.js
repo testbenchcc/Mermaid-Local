@@ -145,12 +145,22 @@ function render() {
                 }
                 
                 // Force manual attachment
-                if (window.SVGInteractions) {
-                    console.log('Attaching interactions to SVG:', svg.id);
-                    window.SVGInteractions.attachTo(svg);
-                    window.SVGInteractions.attachLoggerTo(svg);
+                if (window.SVGEvents) {
+                    console.log('[script.js] Attaching events to SVG:', svg.id || '(no id)', svg.className?.baseVal || svg.className || '');
+                    window.SVGEvents.attachTo(svg);
+                    if (window.SVGEvents.attachLoggerTo) {
+                        window.SVGEvents.attachLoggerTo(svg);
+                    }
                 } else {
-                    console.warn('SVGInteractions not available');
+                    console.warn('[script.js] SVGEvents not available');
+                }
+
+                // Ensure animations are bound as well
+                if (window.SVGAnimations && window.SVGAnimations.setupAnimations) {
+                    console.log('[script.js] Attaching animations to SVG:', svg.id || '(no id)');
+                    window.SVGAnimations.setupAnimations(svg);
+                } else {
+                    console.warn('[script.js] SVGAnimations.setupAnimations not available');
                 }
             });
         }, 100); // Small delay to ensure rendering is complete

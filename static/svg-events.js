@@ -1,8 +1,9 @@
 /*
-  SVG Interactions for Mermaid-exported state diagrams (and similar static SVGs)
+  SVG Events for Mermaid-exported state diagrams (and similar static SVGs)
   - Attaches mouse and click interactions to nodes, edges, start/end points
   - Dispatches custom events on both the target element and the parent <svg>
   - No external dependencies
+  - ONLY CONTAINS EVENT HANDLING, NO ANIMATIONS (see svg-animations.js for animations)
 
   Usage:
     // Optionally, just include this file; it auto-initializes for all SVGs with class 'statediagram'
@@ -33,8 +34,6 @@
     trackMouseMove: false,
     // Optional filter to limit which kinds get listeners: ['node','edge','start','end']
     includeKinds: null, // null = all kinds
-    // Apply a complementary hue shift on hover to make items visibly "show"
-    hoverHueShift: true,
   };
 
   const CLICK_DELAY_MS = 250;
@@ -50,142 +49,11 @@
     const detail = { kind, id, element: targetEl, originalEvent };
     const custom = new CustomEvent(`svgitem:${eventName}`, { detail, bubbles: true });
     // Fire on the concrete element (group/path/circle) and let it bubble to svg and document
+    try { console.debug('[SVGEvents] dispatch', { event: `svgitem:${eventName}`, kind, id, target: targetEl }); } catch (_) {}
     targetEl.dispatchEvent(custom);
   }
 
-  // --- Color utilities (see hueShift.md reference) ---
-  function clamp01(v) { return Math.min(1, Math.max(0, v)); }
-
-  function rgbToHsl(r, g, b) {
-    r /= 255; g /= 255; b /= 255;
-    const max = Math.max(r, g, b), min = Math.min(r, g, b);
-    let h = 0, s = 0; const l = (max + min) / 2;
-    if (max !== min) {
-      const d = max - min;
-      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-      switch (max) {
-        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-        case g: h = (b - r) / d + 2; break;
-        case b: h = (r - g) / d + 4; break;
-      }
-      h *= 60;
-    }
-    return { h, s: s * 100, l: l * 100 };
-  }
-
-  function hexToRgb(hex) {
-    if (!hex) return null;
-    hex = String(hex).trim();
-    if (!hex.startsWith('#')) return null;
-    hex = hex.slice(1);
-    if (hex.length === 3) {
-      hex = hex.split('').map(c => c + c).join('');
-    }
-    const int = parseInt(hex, 16);
-    if (Number.isNaN(int) || hex.length !== 6) return null;
-    return { r: (int >> 16) & 255, g: (int >> 8) & 255, b: int & 255 };
-  }
-
-  function parseCssColorToHsl(css) {
-    if (!css || css === 'none' || css === 'transparent') return null;
-    css = String(css).trim();
-    // hex
-    if (css.startsWith('#')) {
-      const rgb = hexToRgb(css);
-      if (!rgb) return null;
-      return rgbToHsl(rgb.r, rgb.g, rgb.b);
-    }
-    // rgb/rgba
-    const m = css.match(/^rgba?\(([^)]+)\)/i);
-    if (m) {
-      const parts = m[1].split(',').map(s => s.trim());
-      const r = parseFloat(parts[0]);
-      const g = parseFloat(parts[1]);
-      const b = parseFloat(parts[2]);
-      if ([r,g,b].some(v => Number.isNaN(v))) return null;
-      return rgbToHsl(r, g, b);
-    }
-    // hsl already
-    const mh = css.match(/^hsl[a]?\(([^)]+)\)/i);
-    if (mh) {
-      const parts = mh[1].split(',').map(s => s.trim());
-      const h = parseFloat(parts[0]);
-      const s = parseFloat(parts[1]);
-      const l = parseFloat(parts[2]);
-      if ([h,s,l].some(v => Number.isNaN(v))) return null;
-      return { h, s, l };
-    }
-    return null;
-  }
-
-  function hslToCss(h, s, l) {
-    return `hsl(${Math.round(h)}, ${clamp01(s/100)*100}%, ${clamp01(l/100)*100}%)`;
-  }
-
-  function complementaryFromCss(css) {
-    const hsl = parseCssColorToHsl(css);
-    if (!hsl) return null;
-    const compHue = (hsl.h + 180) % 360;
-    return hslToCss(compHue, hsl.s, hsl.l);
-  }
-
-  // Collect SVG drawable elements under a container
-  const DRAW_TAGS = ['path','rect','circle','ellipse','polygon','polyline','line','text'];
-  function collectDrawable(el) {
-    const out = [];
-    if (el && DRAW_TAGS.includes(el.tagName?.toLowerCase())) out.push(el);
-    if (el && el.querySelectorAll) {
-      el.querySelectorAll(DRAW_TAGS.join(',')).forEach(n => out.push(n));
-    }
-    return out;
-  }
-
-  function applyHueShiftHover(container) {
-    const nodes = collectDrawable(container);
-    nodes.forEach(n => {
-      const cs = getComputedStyle(n);
-      // Fill
-      if (!n.dataset.huePrevFill) {
-        const fill = cs.fill;
-        const comp = complementaryFromCss(fill);
-        if (comp) {
-          n.dataset.huePrevFill = n.getAttribute('fill') || '';
-          n.style.fill = comp;
-        }
-      }
-      // Stroke
-      if (!n.dataset.huePrevStroke) {
-        const stroke = cs.stroke;
-        const compS = complementaryFromCss(stroke);
-        if (compS) {
-          n.dataset.huePrevStroke = n.getAttribute('stroke') || '';
-          n.style.stroke = compS;
-        }
-      }
-    });
-  }
-
-  function revertHueShiftHover(container) {
-    const nodes = collectDrawable(container);
-    nodes.forEach(n => {
-      if (n.dataset.huePrevFill !== undefined) {
-        if (n.dataset.huePrevFill === '') {
-          n.style.removeProperty('fill');
-        } else {
-          n.style.fill = n.dataset.huePrevFill;
-        }
-        delete n.dataset.huePrevFill;
-      }
-      if (n.dataset.huePrevStroke !== undefined) {
-        if (n.dataset.huePrevStroke === '') {
-          n.style.removeProperty('stroke');
-        } else {
-          n.style.stroke = n.dataset.huePrevStroke;
-        }
-        delete n.dataset.huePrevStroke;
-      }
-    });
-  }
+  // No color utilities here - moved to svg-animations.js
 
   function addListeners(kind, elements, svgEl, opts) {
     if (!elements || elements.length === 0) return;
@@ -194,11 +62,9 @@
       if (!el.dataset.svgKind) el.dataset.svgKind = kind;
 
       el.addEventListener('mouseenter', (ev) => {
-        if (opts?.hoverHueShift) applyHueShiftHover(el);
         dispatch(kind, 'mouseenter', el, svgEl, ev);
       });
       el.addEventListener('mouseleave', (ev) => {
-        if (opts?.hoverHueShift) revertHueShiftHover(el);
         dispatch(kind, 'mouseleave', el, svgEl, ev);
       });
       el.addEventListener('click', (ev) => {
@@ -256,6 +122,7 @@
               edge.parentNode.appendChild(hb);
             }
           }
+          try { console.debug('[SVGEvents] created edge hitbox for', edge.id || '(no id)'); } catch (_) {}
         }
         // Sync geometry each time we initialize
         hb.setAttribute('d', edge.getAttribute('d') || '');
@@ -271,7 +138,7 @@
       }
     });
     // Ensure we have CSS for cursor and safety
-    const styleId = 'svg-interactions-hitbox-style';
+    const styleId = 'svg-events-hitbox-style';
     if (!document.getElementById(styleId)) {
       const s = document.createElement('style');
       s.id = styleId;
@@ -280,6 +147,7 @@
         .edge-hitbox:focus { outline: none; }
       `;
       document.head.appendChild(s);
+      try { console.debug('[SVGEvents] injected hitbox style'); } catch (_) {}
     }
     return pairs;
   }
@@ -301,6 +169,17 @@
     const startCircles = svgEl.querySelectorAll('g.nodes circle.state-start');
     const endCircles = svgEl.querySelectorAll('g.nodes circle.state-end');
 
+    try {
+      console.debug('[SVGEvents] attachTo()', {
+        svg: svgEl.id || '(no id)',
+        nodes: nodeGroups.length,
+        edges: edges.length,
+        starts: startCircles.length,
+        ends: endCircles.length,
+        opts
+      });
+    } catch (_) {}
+
     if (isIncluded('node', opts)) addListeners('node', Array.from(nodeGroups), svgEl, opts);
     if (isIncluded('edge', opts)) {
       // Build wide invisible hitboxes for easier interaction with thin paths
@@ -313,12 +192,10 @@
         // Basic events routed to original
         overlay.addEventListener('mouseenter', (ev) => {
           original.dataset.svgHover = '1';
-          if (opts?.hoverHueShift) applyHueShiftHover(original);
           dispatch('edge', 'mouseenter', original, svgEl, ev);
         });
         overlay.addEventListener('mouseleave', (ev) => {
           delete original.dataset.svgHover;
-          if (opts?.hoverHueShift) revertHueShiftHover(original);
           dispatch('edge', 'mouseleave', original, svgEl, ev);
         });
         overlay.addEventListener('mousedown', (ev) => {
@@ -359,28 +236,17 @@
     if (isIncluded('start', opts)) addListeners('start', Array.from(startCircles), svgEl, opts);
     if (isIncluded('end', opts)) addListeners('end', Array.from(endCircles), svgEl, opts);
 
-    // Provide a simple visual hover outline for debugging (non-destructive)
-    const hoverStyleId = 'svg-interactions-hover-style';
-    if (!document.getElementById(hoverStyleId)) {
-      const s = document.createElement('style');
-      s.id = hoverStyleId;
-      s.textContent = `
-        [data-svg-kind='node']:focus, [data-svg-kind='node']:hover { outline: 1px dashed #81b1db; outline-offset: 2px; }
-        [data-svg-kind='edge']:focus, [data-svg-kind='edge']:hover, [data-svg-kind='edge'][data-svg-hover='1'] { filter: drop-shadow(0 0 1px #81b1db); }
-        [data-svg-kind='start']:focus, [data-svg-kind='start']:hover,
-        [data-svg-kind='end']:focus, [data-svg-kind='end']:hover { stroke: #81b1db !important; }
-      `;
-      document.head.appendChild(s);
-    }
+    // Visual styles are now in svg-animations.js
   }
 
   // Auto initialization (can be disabled via options)
   function autoInit() {
+    try { console.debug('[SVGEvents] autoInit start'); } catch (_) {}
     // Target all SVGs in preview and with Mermaid-related classes
     const svgs = document.querySelectorAll('#preview svg, svg.statediagram, svg.mermaid');
-    console.log('SVGInteractions autoInit found:', svgs.length, 'SVGs');
+    try { console.debug('[SVGEvents] found SVGs', svgs.length); } catch (_) {}
     svgs.forEach(svg => {
-      console.log('Auto-attaching to SVG:', svg.id || 'unnamed');
+      try { console.debug('[SVGEvents] auto-attach', svg.id || 'unnamed', svg.className?.baseVal || svg.className || ''); } catch (_) {}
       attachTo(svg);
     });
     
@@ -393,14 +259,14 @@
             // Check for any new SVG elements
             mutation.addedNodes.forEach(node => {
               if (node.nodeName === 'SVG') {
-                console.log('MutationObserver: New SVG detected, attaching interactions');
+                try { console.debug('[SVGEvents] observer: direct SVG added'); } catch (_) {}
                 attachTo(node);
                 attachLoggerTo(node);
               } else if (node.querySelectorAll) {
                 // Check for SVGs inside added nodes
                 const nestedSvgs = node.querySelectorAll('svg');
                 if (nestedSvgs.length > 0) {
-                  console.log('MutationObserver: Found', nestedSvgs.length, 'nested SVGs');
+                  try { console.debug('[SVGEvents] observer: nested SVGs found', nestedSvgs.length); } catch (_) {}
                   nestedSvgs.forEach(svg => {
                     attachTo(svg);
                     attachLoggerTo(svg);
@@ -414,7 +280,7 @@
       
       // Start observing the preview element for added nodes
       observer.observe(previewEl, { childList: true, subtree: true });
-      console.log('SVG interaction mutation observer installed on #preview');
+      try { console.debug('[SVGEvents] mutation observer installed on #preview'); } catch (_) {}
     }
   }
 
@@ -479,7 +345,7 @@
 
   // UMD-lite export
   if (typeof window !== 'undefined') {
-    window.SVGInteractions = API;
+    window.SVGEvents = API;
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', () => {
         autoInit();
