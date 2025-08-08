@@ -2,3 +2,5 @@
 *.db
 .prettierrc
 .windsurfrules
+commit-and-tag.ps1
+.ps1
