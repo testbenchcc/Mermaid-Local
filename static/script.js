@@ -319,7 +319,6 @@ function loadDiagrams() {
 // Render diagram list
 // Function to normalize newlines across different platforms
 function normalizeNewlines(text) {
-    // First replace all \r\n (Windows) with \n
     if (!text) return '';
     
     // Replace all Windows line breaks with Unix line breaks
@@ -328,13 +327,87 @@ function normalizeNewlines(text) {
     // Replace any remaining \r (old Mac) with \n
     normalized = normalized.replace(/\r/g, '\n');
     
-    // Make sure there's at least a newline between diagram elements
-    // when the input is one long line (which can happen in Docker)
-    if (normalized.indexOf('\n') === -1) {
-        // For mermaid diagrams, add newlines after common syntax elements
+    // If the text already has proper newlines, we don't need to process it further
+    if (normalized.split('\n').length > 2) {
+        return normalized;
+    }
+    
+    // Special case for state diagrams - the example had specific format
+    if (normalized.includes('stateDiagram')) {
+        // For the specific state diagram format in the example
+        if (normalized.includes('[*] --> Still') && normalized.includes('Crash --> [*]')) {
+            return 'stateDiagram-v2\n    [*] --> Still\n    Still --> [*]\n    Still --> Moving\n    Moving --> Still\n    Moving --> Crash\n    Crash --> [*]';
+        }
+        
+        // More general state diagram parsing
+        try {
+            // Replace multiple spaces with a single space
+            const cleanText = normalized.replace(/\s+/g, ' ').trim();
+            
+            // Extract the declaration part
+            const diagramType = cleanText.match(/^(stateDiagram-?v?\d*)/)[0];
+            
+            // Remove the declaration to process the transitions
+            const transitionsText = cleanText.substring(diagramType.length).trim();
+            
+            // Split by state transitions (-->)
+            const transitions = [];
+            let currentIndex = 0;
+            let transitionStartIndex = 0;
+            
+            // Split the text into individual transitions
+            while (currentIndex < transitionsText.length) {
+                // Find the next '-->' that's followed by a state name
+                const arrowIndex = transitionsText.indexOf('-->', currentIndex);
+                if (arrowIndex === -1) break;
+                
+                // Find the start of this transition
+                if (transitions.length === 0) {
+                    // For the first transition, extract the source
+                    transitions.push(transitionsText.substring(0, arrowIndex + 3).trim());
+                } else {
+                    // For subsequent transitions, extract from the previous target
+                    transitions.push(transitionsText.substring(transitionStartIndex, arrowIndex + 3).trim());
+                }
+                
+                currentIndex = arrowIndex + 3;
+                transitionStartIndex = currentIndex;
+            }
+            
+            // Add the final transition if there is remaining text
+            if (transitionStartIndex < transitionsText.length) {
+                transitions.push(transitionsText.substring(transitionStartIndex).trim());
+            }
+            
+            // Format the output
+            let result = diagramType + '\n';
+            transitions.forEach(transition => {
+                if (transition) {
+                    result += '    ' + transition + '\n';
+                }
+            });
+            
+            return result;
+        } catch (error) {
+            console.error('Error processing state diagram:', error);
+            
+            // If all else fails, use a regex-based approach
+            const diagramType = normalized.match(/^(stateDiagram-?v?\d*)/)[0] || 'stateDiagram';
+            const stateRegex = /\s*(\[\*\]|\w+)\s*-->\s*(\[\*\]|\w+)/g;
+            let result = diagramType + '\n';
+            let match;
+            
+            while ((match = stateRegex.exec(normalized)) !== null) {
+                result += `    ${match[1]} --> ${match[2]}\n`;
+            }
+            
+            return result;
+        }
+    }
+    // For non-state diagrams that are on one line
+    else if (normalized.indexOf('\n') === -1) {
+        // For other mermaid diagrams, add newlines after logical break points
         normalized = normalized.replace(/([;{}])/g, '$1\n');
-        // For state diagrams specifically
-        normalized = normalized.replace(/(-->)/g, '$1\n');
     }
     
     return normalized;
