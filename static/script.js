@@ -113,7 +113,31 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function render() {
     const editor = document.getElementById('editor');
-    const code = editor.textContent; // Use textContent for contenteditable div
+    
+    // Get the text content from the editor
+    let code = editor.textContent; // Use textContent for contenteditable div
+    
+    // Fix for Docker: ensure proper line breaks
+    // First normalize line breaks to \n
+    code = code.replace(/\r\n/g, '\n');
+    code = code.replace(/\r/g, '\n');
+    
+    // Handle case where diagram is all on one line
+    // This attempts to intelligently split diagram code by inserting newlines
+    if (!code.includes('\n') && code.length > 50) {
+        console.log('Detected single line diagram, attempting to insert newlines');
+        // Insert newlines after common diagram markers
+        code = code.replace(/([\s\t])(graph|flowchart|stateDiagram|sequenceDiagram|classDiagram|erDiagram)([\s\t-])/g, '$1$2$3\n');
+        
+        // Insert newlines after state transitions
+        code = code.replace(/([^\s])\s*(-->|==>)\s*([^\s])/g, '$1 $2 $3\n');
+        
+        // Insert newlines after square brackets that likely end a line
+        code = code.replace(/\]\s+/g, ']\n');
+        
+        console.log('Inserted newlines in diagram code');
+    }
+    
     const preview = document.getElementById('preview');
     
     console.log('Rendering Mermaid diagram with code:', code.substring(0, 50) + '...');
