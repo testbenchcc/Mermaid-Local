@@ -76,6 +76,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add event listener for editor changes
     let debounceTimer;
     editor.addEventListener('input', function() {
+        isDirty = true;
         if (autoRenderToggle.checked) {
             // Debounce the render function to avoid excessive rendering
             clearTimeout(debounceTimer);
@@ -110,6 +111,32 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+let isDirty = false;
+let lastSavedContent = '';
+let pendingNewAfterSave = false;
+
+function showAlert(message, type = 'success', timeout = 2000) {
+    const container = document.getElementById('alert-container');
+    if (!container) return;
+    const el = document.createElement('div');
+    el.className = `alert alert-${type} alert-dismissible fade show`;
+    el.setAttribute('role', 'alert');
+    el.textContent = message;
+    const closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.className = 'btn-close';
+    closeBtn.setAttribute('data-bs-dismiss', 'alert');
+    closeBtn.setAttribute('aria-label', 'Close');
+    el.appendChild(closeBtn);
+    container.appendChild(el);
+    if (timeout) {
+        setTimeout(() => {
+            el.classList.remove('show');
+            setTimeout(() => el.remove(), 150);
+        }, timeout);
+    }
+}
 
 function render() {
     const editor = document.getElementById('editor');
@@ -176,6 +203,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const saveModal = document.getElementById('save-modal');
     const loadModal = document.getElementById('load-modal');
     const saveBtn = document.getElementById('save-btn');
+    const saveAsBtn = document.getElementById('save-as-btn');
     const loadBtn = document.getElementById('load-btn');
     const newBtn = document.getElementById('new-btn');
     const saveClose = document.getElementById('save-close');
@@ -184,13 +212,39 @@ document.addEventListener('DOMContentLoaded', function() {
     const refreshListBtn = document.getElementById('refresh-list-btn');
     const searchBtn = document.getElementById('search-btn');
     const diagramList = document.getElementById('diagram-list');
+    const newDiagramModalEl = document.getElementById('newDiagramModal');
+    const newDiagramModal = new bootstrap.Modal(newDiagramModalEl);
+    const newConfirmNoSave = document.getElementById('new-confirm-no-save');
+    const newConfirmSave = document.getElementById('new-confirm-save');
     
-    // New diagram button - clear editor and reset diagram ID
-    newBtn.addEventListener('click', function() {
-        document.getElementById('editor').textContent = ''; // Use textContent for contenteditable div
+    function createNewDiagram() {
+        const editorEl = document.getElementById('editor');
+        editorEl.textContent = '';
         document.getElementById('diagram-id').value = '';
         render();
-        alert('New diagram created! You can now edit and save it with a new name.');
+        isDirty = false;
+        lastSavedContent = '';
+        showAlert('New diagram created! You can now edit and save it with a new name.', 'info');
+    }
+
+    newBtn.addEventListener('click', function() {
+        const content = document.getElementById('editor').innerText;
+        if (isDirty && content.trim().length > 0) {
+            newDiagramModal.show();
+        } else {
+            createNewDiagram();
+        }
+    });
+
+    newConfirmNoSave.addEventListener('click', function() {
+        newDiagramModal.hide();
+        createNewDiagram();
+    });
+
+    newConfirmSave.addEventListener('click', function() {
+        pendingNewAfterSave = true;
+        newDiagramModal.hide();
+        saveBtn.click();
     });
     
     // Open save modal
@@ -263,7 +317,7 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Diagram data:', { title, content: content.substring(0, 20) + '...', tags, diagramId });
         
         if (!title) {
-            alert('Please enter a title for your diagram');
+            showAlert('Please enter a title for your diagram', 'warning');
             return;
         }
         
@@ -296,11 +350,17 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Save successful, received data:', data);
             document.getElementById('diagram-id').value = data.id;
             saveModal.style.display = 'none';
-            alert('Diagram saved successfully!');
+            lastSavedContent = content;
+            isDirty = false;
+            showAlert('Diagram saved successfully!', 'success');
+            if (pendingNewAfterSave) {
+                pendingNewAfterSave = false;
+                createNewDiagram();
+            }
         })
         .catch(error => {
             console.error('Error saving diagram:', error);
-            alert('Failed to save diagram: ' + error.message);
+            showAlert('Failed to save diagram: ' + error.message, 'danger');
         });
     });
     
@@ -457,6 +517,9 @@ function loadDiagram(id) {
             
             // Set the hidden diagram ID
             document.getElementById('diagram-id').value = data.id;
+            // Update dirty tracking
+            lastSavedContent = normalizedContent;
+            isDirty = false;
             
             // Update node map for highlighting after loading
             if (window.mapNodesToText) {
@@ -549,6 +612,9 @@ function loadMostRecentDiagram() {
                 }
                 
                 render();
+                // Update dirty tracking
+                lastSavedContent = normalizedContent;
+                isDirty = false;
             }
         })
         .catch(error => {
@@ -578,11 +644,14 @@ D --> B`;
     }
     
     render();
+    // Default content is considered clean until edited
+    lastSavedContent = editor.textContent;
+    isDirty = false;
 }
 
 // Initialize resizable divider
 function initResizer() {
-    const container = document.querySelector('.container');
+    const container = document.querySelector('.app-container');
     const editorPane = document.querySelector('.editor-pane');
     const previewPane = document.querySelector('.preview-pane');
     const divider = document.getElementById('divider');
@@ -602,21 +671,15 @@ function initResizer() {
     
     function handleMouseMove(e) {
         if (!isResizing) return;
-        
         const containerRect = container.getBoundingClientRect();
-        const deltaX = e.clientX - lastX;
-        
-        // Calculate new width as a percentage of the container
-        const editorWidth = editorPane.getBoundingClientRect().width;
         const containerWidth = containerRect.width;
-        const newEditorWidthPercent = ((editorWidth + deltaX) / containerWidth) * 100;
-        
+        let newEditorWidthPercent = ((e.clientX - containerRect.left) / containerWidth) * 100;
         // Limit the minimum width of both panes
-        if (newEditorWidthPercent > 10 && newEditorWidthPercent < 90) {
-            editorPane.style.width = `${newEditorWidthPercent}%`;
-            previewPane.style.width = `${100 - newEditorWidthPercent}%`;
-            lastX = e.clientX;
-        }
+        if (newEditorWidthPercent < 10) newEditorWidthPercent = 10;
+        if (newEditorWidthPercent > 90) newEditorWidthPercent = 90;
+        editorPane.style.width = `${newEditorWidthPercent}%`;
+        previewPane.style.width = `${100 - newEditorWidthPercent}%`;
+        lastX = e.clientX;
     }
     
     function stopResize() {

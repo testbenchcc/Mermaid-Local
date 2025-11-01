@@ -44,6 +44,8 @@
     const needsNL = current.length > 0 && !current.endsWith('\n');
     const next = needsNL ? current + '\n' + text : current + text;
     editor.textContent = next;
+    
+    try { editor.dispatchEvent(new Event('input', { bubbles: true })); } catch (_) {}
 
     // Re-render immediately for feedback
     if (typeof window.render === 'function') {
@@ -95,7 +97,11 @@
   function onSubmit() {
     const name = (input.value || '').trim();
     if (!name) {
-      alert('Please enter a name');
+      if (typeof showAlert === 'function') {
+        try { showAlert('Please enter a name', 'warning'); } catch (_) {}
+      } else {
+        try { console.warn('Please enter a name'); } catch (_) {}
+      }
       try { input.focus(); } catch (_) {}
       return;
     }

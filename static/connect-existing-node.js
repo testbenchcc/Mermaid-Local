@@ -125,6 +125,8 @@
     const needsNL = current.length > 0 && !current.endsWith('\n');
     const next = needsNL ? current + '\n' + text : current + text;
     editor.textContent = next;
+    
+    try { editor.dispatchEvent(new Event('input', { bubbles: true })); } catch (_) {}
 
     if (typeof window.render === 'function') {
       try { window.render(); } catch (_) {}
@@ -138,7 +140,11 @@
     const value = listbox.value || '';
     const name = value.trim();
     if (!name) {
-      alert('Please select a node');
+      if (typeof showAlert === 'function') {
+        try { showAlert('Please select a node', 'warning'); } catch (_) {}
+      } else {
+        try { console.warn('Please select a node'); } catch (_) {}
+      }
       try { listbox.focus(); } catch (_) {}
       return;
     }

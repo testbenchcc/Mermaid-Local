@@ -48,7 +48,7 @@ h1 {
     font-size: 1.5rem;
 }
 
-.container {
+.app-container {
     display: flex;
     flex: 1;
     overflow: hidden;
@@ -121,7 +121,9 @@ textarea, .code-editor {
     transition: background-color 0.3s ease;
 }
 
-button {
+.controls button,
+.search-container button,
+.form-actions button {
     padding: 0.5rem 1rem;
     background-color: var(--button-bg);
     color: white;
@@ -131,7 +133,9 @@ button {
     transition: background-color 0.3s ease;
 }
 
-button:hover {
+.controls button:hover,
+.search-container button:hover,
+.form-actions button:hover {
     background-color: var(--button-hover);
 }
 
@@ -145,8 +149,8 @@ button:hover {
     display: none !important;
 }
 
-/* Modal styles */
-.modal {
+/* App custom modal styles (avoid Bootstrap .modal conflicts) */
+.app-modal {
     display: none;
     position: fixed;
     z-index: 1000;
@@ -158,7 +162,7 @@ button:hover {
     overflow: auto;
 }
 
-.modal-content {
+.app-modal-content {
     background-color: var(--bg-color);
     color: var(--text-color);
     margin: 10% auto;
@@ -182,13 +186,13 @@ button:hover {
     color: #999;
 }
 
-.modal-header {
+.app-modal-header {
     margin-bottom: 15px;
     padding-bottom: 10px;
     border-bottom: 1px solid var(--border-color);
 }
 
-.modal-footer {
+.app-modal-footer {
     margin-top: 15px;
     padding-top: 10px;
     border-top: 1px solid var(--border-color);

@@ -4,15 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Local Mermaid Studio</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" crossorigin="anonymous">
     <link rel="stylesheet" href="/static/styles.css?v=20250807-2">
 </head>
 <body>
     <header>
         <h1>Local Mermaid Studio</h1>
         <div style="display: flex; gap: 15px; align-items: center;">
-            <button id="new-btn">New Diagram</button>
-            <button id="save-btn">Save Diagram</button>
-            <button id="load-btn">Load Diagram</button>
+            <button id="new-btn" class="btn btn-outline-primary">New Diagram</button>
+            <button id="save-btn" class="btn btn-primary">Save</button>
+            <button id="save-as-btn" class="btn btn-secondary">Save As</button>
+            <button id="load-btn" class="btn btn-outline-secondary">Load</button>
             <div class="theme-switch">
                 <span class="theme-switch-label">Dark Mode</span>
                 <label class="switch">
@@ -22,7 +24,8 @@
             </div>
         </div>
     </header>
-    <div class="container">
+    <div id="alert-container" class="position-fixed top-0 start-50 translate-middle-x p-3" style="z-index: 2000;"></div>
+    <div class="app-container">
         <!-- Hidden input to store the current diagram ID -->
         <input type="hidden" id="diagram-id" value="">
         <div class="editor-pane">
@@ -50,14 +53,14 @@
     <script src="/static/connect-existing-node.js?v=20250807-1"></script>
     <script src="/static/script.js?v=20250807-3"></script>
     
-    <!-- Save Diagram Modal -->
-    <div id="save-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
+    <!-- Save Diagram Modal (custom app modal) -->
+    <div id="save-modal" class="app-modal">
+        <div class="app-modal-content">
+            <div class="app-modal-header">
                 <h2>Save Diagram</h2>
                 <!-- Close button removed -->
             </div>
-            <div class="modal-body">
+            <div class="app-modal-body">
                 <div class="form-group">
                     <label for="diagram-title">Title:</label>
                     <input type="text" id="diagram-title" class="form-control" placeholder="Enter diagram title">
@@ -73,14 +76,14 @@
         </div>
     </div>
     
-    <!-- Load Diagram Modal -->
-    <div id="load-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
+    <!-- Load Diagram Modal (custom app modal) -->
+    <div id="load-modal" class="app-modal">
+        <div class="app-modal-content">
+            <div class="app-modal-header">
                 <h2>Load Diagram</h2>
                 <!-- Close button removed -->
             </div>
-            <div class="modal-body">
+            <div class="app-modal-body">
                 <div class="search-container">
                     <input type="text" id="search-input" placeholder="Search by title or tag...">
                     <button id="search-btn">Search</button>
@@ -93,13 +96,13 @@
         </div>
     </div>
 
-    <!-- Connect New Node Modal -->
-    <div id="connect-new-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
+    <!-- Connect New Node Modal (custom app modal) -->
+    <div id="connect-new-modal" class="app-modal">
+        <div class="app-modal-content">
+            <div class="app-modal-header">
                 <h2>Connect New Node</h2>
             </div>
-            <div class="modal-body">
+            <div class="app-modal-body">
                 <div class="form-group">
                     <label for="connect-new-name">Node name:</label>
                     <input type="text" id="connect-new-name" class="form-control" placeholder="Enter node name">
@@ -112,13 +115,13 @@
         </div>
     </div>
 
-    <!-- Connect Existing Node Modal -->
-    <div id="connect-existing-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
+    <!-- Connect Existing Node Modal (custom app modal) -->
+    <div id="connect-existing-modal" class="app-modal">
+        <div class="app-modal-content">
+            <div class="app-modal-header">
                 <h2>Connect to Existing Node</h2>
             </div>
-            <div class="modal-body">
+            <div class="app-modal-body">
                 <div class="form-group" style="display:flex; gap:8px; align-items:center;">
                     <input type="text" id="connect-existing-filter" class="form-control" placeholder="Filter nodes..." style="flex:1; min-width:0;">
                     <button id="connect-existing-refresh" type="button">Refresh</button>
@@ -134,5 +137,28 @@
             </div>
         </div>
     </div>
+
+    <!-- New Diagram Confirmation Modal (Bootstrap) -->
+    <div class="modal fade" id="newDiagramModal" tabindex="-1" aria-labelledby="newDiagramModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="newDiagramModalLabel">Create New Diagram</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    You may have unsaved changes. What would you like to do?
+                </div>
+                <div class="modal-footer">
+                    <button id="new-confirm-no-save" type="button" class="btn btn-danger">Create new without saving</button>
+                    <button id="new-confirm-save" type="button" class="btn btn-primary">Save current and open new</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
 </body>
 </html>
