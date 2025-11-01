@@ -1,5 +1,0 @@
-- [x] Split the button into two buttons, one for save and one for save as
-- [x] Styling should use Bootstrap 5.0
-- [x] The user does not like the popups like: `Diagram saved successfully!` and others. We would prefer to use bootstrap alerts. The alert should only be displayed momentarily
-- [x] There should be a confirmation when creating a new diagram to prevent loosing any current work. Right now, I click the new diagram button, if I have any unsaved work, it will be lost. Use a modal to ask for confirmation, create a few choices: create new without saving, save current work and open new, cancel
-- [x] When I try to use the vertical divider to resize the pannels, it works, but only when moved to the left. If I try to drag it to the right, it moves to the left.
