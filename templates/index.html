@@ -127,7 +127,51 @@
                 </div>
                 <div class="form-group">
                     <label for="connect-existing-list">Select a node:</label>
-                    <select id="connect-existing-list" size="10" class="form-control" style="width:100%"></select>
+                    <select id="connect-existing-list" size="6" class="form-control" style="width:100%"></select>
+                </div>
+                <div class="form-group">
+                    <label for="connect-existing-name">Node name (id):</label>
+                    <input type="text" id="connect-existing-name" class="form-control" placeholder="Node id (e.g. A, REPO, DB1)">
+                </div>
+                <div class="form-group">
+                    <label for="connect-existing-label">Node label (optional):</label>
+                    <input type="text" id="connect-existing-label" class="form-control" placeholder="What appears in the box">
+                </div>
+                <div class="form-group">
+                    <label for="connect-existing-shape">Node shape:</label>
+                    <select id="connect-existing-shape" class="form-control">
+                        <option value="">(use default)</option>
+                        <option value="rect">rect</option>
+                        <option value="rounded">rounded</option>
+                        <option value="stadium">stadium</option>
+                        <option value="subproc">subproc</option>
+                        <option value="cyl">cyl</option>
+                        <option value="circle">circle</option>
+                        <option value="diamond">diamond</option>
+                        <option value="hex">hex</option>
+                        <option value="lean-r">lean-r</option>
+                        <option value="lean-l">lean-l</option>
+                        <option value="docs">docs</option>
+                        <option value="text">text</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="connect-existing-link-type">Link type:</label>
+                    <select id="connect-existing-link-type" class="form-control">
+                        <option value="arrow">Arrow (--&gt;)</option>
+                        <option value="open">Open (---)</option>
+                        <option value="dotted">Dotted (-.-&gt;)</option>
+                        <option value="thick">Thick (==&gt;)</option>
+                        <option value="invisible">Invisible (~~~)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="connect-existing-link-text">Link text (optional):</label>
+                    <input type="text" id="connect-existing-link-text" class="form-control" placeholder="e.g. TRUE, CONFIRM">
+                </div>
+                <div class="form-group">
+                    <label for="connect-existing-preview">Preview:</label>
+                    <pre id="connect-existing-preview" class="form-control" style="white-space:pre-wrap; min-height:3em; font-family:monospace;"></pre>
                 </div>
                 <div class="form-actions" style="display:flex; gap:10px; justify-content:flex-end;">
                     <button id="connect-existing-cancel" type="button">Cancel</button>

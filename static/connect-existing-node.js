@@ -8,6 +8,7 @@
   'use strict';
 
   let modal, listbox, submitBtn, cancelBtn, refreshBtn, filterInput;
+  let nameInput, labelInput, shapeSelect, linkTypeSelect, linkTextInput, previewEl;
   let lastContext = null; // { id, element, svg, sourceEvent }
 
   function $(id) { return document.getElementById(id); }
@@ -19,6 +20,12 @@
     cancelBtn = cancelBtn || $('connect-existing-cancel');
     refreshBtn = refreshBtn || $('connect-existing-refresh');
     filterInput = filterInput || $('connect-existing-filter');
+    nameInput = nameInput || $('connect-existing-name');
+    labelInput = labelInput || $('connect-existing-label');
+    shapeSelect = shapeSelect || $('connect-existing-shape');
+    linkTypeSelect = linkTypeSelect || $('connect-existing-link-type');
+    linkTextInput = linkTextInput || $('connect-existing-link-text');
+    previewEl = previewEl || $('connect-existing-preview');
   }
 
   function closeModal() {
@@ -26,17 +33,29 @@
     modal.style.display = 'none';
   }
 
-  function openModal() {
+  function openModal(preset) {
     ensureElements();
     if (!modal) return console.warn('[connect-existing-node] modal element missing');
     // Clear selection and filter
     if (filterInput) filterInput.value = '';
     if (listbox) listbox.selectedIndex = -1;
+
+    if (nameInput) nameInput.value = (preset && preset.targetId) || '';
+    if (labelInput) labelInput.value = (preset && preset.label) || '';
+    if (shapeSelect) shapeSelect.value = (preset && preset.shape) || '';
+    if (linkTypeSelect) linkTypeSelect.value = (preset && preset.linkType) || 'arrow';
+    if (linkTextInput) linkTextInput.value = (preset && preset.linkText) || '';
+
     rebuildNodeList();
 
     modal.style.display = 'block';
-    // Focus listbox or filter for accessibility
-    requestAnimationFrame(() => { try { (filterInput || listbox).focus(); } catch (_) {} });
+    // Focus listbox, filter, or name input for accessibility and update preview
+    requestAnimationFrame(() => {
+      try {
+        if (previewEl) updatePreview();
+        (filterInput || listbox || nameInput).focus();
+      } catch (_) {}
+    });
   }
 
   function getNodeLabelFromElement(el) {
@@ -141,15 +160,95 @@
     const filter = (filterInput && filterInput.value || '').trim().toLowerCase();
     const filtered = filter ? names.filter(n => n.toLowerCase().includes(filter)) : names;
     populateList(filtered);
+
+    const target = getTargetId();
+    if (listbox && target) {
+      Array.from(listbox.options).forEach((opt, idx) => {
+        if ((opt.value || '').trim() === target) {
+          listbox.selectedIndex = idx;
+        }
+      });
+    }
+    updatePreview();
   }
 
-  function appendLineToEditor(text) {
+  function getTargetId() {
+    if (nameInput && typeof nameInput.value === 'string') {
+      const v = nameInput.value.trim();
+      if (v) return v;
+    }
+    if (listbox && typeof listbox.value === 'string') {
+      const v = listbox.value.trim();
+      if (v) return v;
+    }
+    return '';
+  }
+
+  function buildNodeDefinitionLine(targetId, label, shape) {
+    if (!targetId) return '';
+    const props = [];
+    if (shape) props.push(`shape: ${shape}`);
+    if (label) {
+      const safeLabel = String(label).replace(/"/g, '\\"');
+      props.push(`label: "${safeLabel}"`);
+    }
+    if (!props.length) return '';
+    return `    ${targetId}@{ ${props.join(', ')} }`;
+  }
+
+  function buildLinkLine(source, targetId, linkType, linkText) {
+    if (!source || !targetId) return '';
+    const text = (linkText || '').trim();
+    switch (linkType) {
+      case 'open':
+        if (text) return `    ${source}---|${text}|${targetId}`;
+        return `    ${source} --- ${targetId}`;
+      case 'dotted':
+        if (text) return `    ${source} -. ${text} .-> ${targetId}`;
+        return `    ${source} -.-> ${targetId}`;
+      case 'thick':
+        if (text) return `    ${source} == ${text} ==> ${targetId}`;
+        return `    ${source} ==> ${targetId}`;
+      case 'invisible':
+        if (text) return `    ${source} ~~~ ${targetId} %% ${text}`;
+        return `    ${source} ~~~ ${targetId}`;
+      case 'arrow':
+      default:
+        if (text) return `    ${source} -- ${text} --> ${targetId}`;
+        return `    ${source} --> ${targetId}`;
+    }
+  }
+
+  function buildSnippet() {
+    const source = deriveSourceName(lastContext) || '';
+    const targetId = getTargetId();
+    const label = (labelInput && labelInput.value || '').trim();
+    const shape = (shapeSelect && shapeSelect.value || '').trim();
+    const linkType = (linkTypeSelect && linkTypeSelect.value) || 'arrow';
+    const linkText = (linkTextInput && linkTextInput.value) || '';
+
+    const lines = [];
+    const nodeLine = buildNodeDefinitionLine(targetId, label, shape);
+    if (nodeLine) lines.push(nodeLine);
+    const linkLine = buildLinkLine(source, targetId, linkType, linkText);
+    if (linkLine) lines.push(linkLine);
+    return lines.join('\n');
+  }
+
+  function updatePreview() {
+    if (!previewEl) return;
+    const snippet = buildSnippet();
+    previewEl.textContent = snippet || '';
+  }
+
+  function appendSnippetToEditor(text) {
     const editor = $('editor');
     if (!editor) return console.warn('[connect-existing-node] editor not found');
 
     const current = editor.textContent || '';
     const needsNL = current.length > 0 && !current.endsWith('\n');
-    const next = needsNL ? current + '\n' + text : current + text;
+    const prefix = needsNL ? current + '\n' : current;
+    const next = prefix + text;
     editor.textContent = next;
     
     try { editor.dispatchEvent(new Event('input', { bubbles: true })); } catch (_) {}
@@ -162,21 +261,34 @@
   }
 
   function onSubmit() {
-    if (!listbox) return;
-    const value = listbox.value || '';
-    const name = value.trim();
-    if (!name) {
+    const targetId = getTargetId();
+    if (!targetId) {
       if (typeof showAlert === 'function') {
-        try { showAlert('Please select a node', 'warning'); } catch (_) {}
+        try { showAlert('Please select or enter a node name', 'warning'); } catch (_) {}
       } else {
-        try { console.warn('Please select a node'); } catch (_) {}
+        try { console.warn('Please select or enter a node name'); } catch (_) {}
       }
-      try { listbox.focus(); } catch (_) {}
+      try {
+        if (nameInput && typeof nameInput.focus === 'function') {
+          nameInput.focus();
+        } else if (listbox && typeof listbox.focus === 'function') {
+          listbox.focus();
+        }
+      } catch (_) {}
       return;
     }
-    const source = deriveSourceName(lastContext) || '';
-    const line = `    ${source} --> ${name}`;
-    appendLineToEditor(line);
+
+    const snippet = buildSnippet();
+    if (!snippet) {
+      if (typeof showAlert === 'function') {
+        try { showAlert('Cannot build connection – missing source node or configuration', 'warning'); } catch (_) {}
+      } else {
+        try { console.warn('Cannot build connection – missing source node or configuration'); } catch (_) {}
+      }
+      return;
+    }
+
+    appendSnippetToEditor(snippet);
     closeModal();
   }
 
@@ -194,11 +306,33 @@
       });
     }
     if (listbox) {
+      listbox.addEventListener('change', () => {
+        if (nameInput) nameInput.value = listbox.value || '';
+        updatePreview();
+      });
       listbox.addEventListener('dblclick', onSubmit);
       listbox.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') { e.preventDefault(); onSubmit(); }
         if (e.key === 'Escape') { e.preventDefault(); closeModal(); }
       });
+    }
+    if (nameInput) {
+      nameInput.addEventListener('input', updatePreview);
+      nameInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); onSubmit(); }
+      });
+    }
+    if (labelInput) {
+      labelInput.addEventListener('input', updatePreview);
+    }
+    if (shapeSelect) {
+      shapeSelect.addEventListener('change', updatePreview);
+    }
+    if (linkTypeSelect) {
+      linkTypeSelect.addEventListener('change', updatePreview);
+    }
+    if (linkTextInput) {
+      linkTextInput.addEventListener('input', updatePreview);
     }
     window.addEventListener('click', (event) => {
       if (event.target === modal) closeModal();
@@ -210,7 +344,8 @@
 
   function onContextMenuConnectExisting(e) {
     lastContext = (e && e.detail) || null;
-    openModal();
+    const preset = (e && e.detail && e.detail.config) || null;
+    openModal(preset);
   }
 
   function init() {

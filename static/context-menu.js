@@ -64,8 +64,28 @@
       return d;
     };
 
-    el.appendChild(mkItem('Connect new node', () => onChoose('connect-new')));
-    el.appendChild(mkItem('Connect to existing node', () => onChoose('connect-existing')));
+    el.appendChild(mkItem('Connect new node', () => onChoose('connect-new', null)));
+    el.appendChild(mkItem('Connect to existing node', () => onChoose('connect-existing', null)));
+    el.appendChild(mkItem('Connect existing as: Process (rect)', () => onChoose('connect-existing', {
+      shape: 'rect',
+      label: 'Process',
+      linkType: 'arrow'
+    })));
+    el.appendChild(mkItem('Connect existing as: Database (cyl)', () => onChoose('connect-existing', {
+      shape: 'cyl',
+      label: 'Database',
+      linkType: 'arrow'
+    })));
+    el.appendChild(mkItem('Connect existing as: Document (docs)', () => onChoose('connect-existing', {
+      shape: 'docs',
+      label: 'Document',
+      linkType: 'arrow'
+    })));
+    el.appendChild(mkItem('Connect existing as: Decision (diamond)', () => onChoose('connect-existing', {
+      shape: 'diamond',
+      label: 'Decision',
+      linkType: 'arrow'
+    })));
 
     document.body.appendChild(el);
     return el;
@@ -80,7 +100,7 @@
     currentContext = null;
   }
 
-  function onChoose(kind) {
+  function onChoose(kind, config) {
     try {
       console.log('[node-context-menu] choose', kind, currentContext);
     } catch (_) {}
@@ -92,6 +112,7 @@
           element: currentContext.element,
           svg: currentContext.svg || null,
           sourceEvent: currentContext.sourceEvent || null,
+          config: config || null,
         },
       });
       currentContext.element.dispatchEvent(ev);
