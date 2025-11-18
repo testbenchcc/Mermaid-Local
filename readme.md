@@ -15,4 +15,4 @@ The toolbar provides New, Save, Load, and a Dark Mode toggle; there is no separa
 - Issues and ideas are tracked in `todo.md`.
  - Node connection tools derive human-friendly node names from SVG nodes, stripping common Mermaid id prefixes like `state-`, `node-`, and `flowchart-` when generating edges.
  - Node click highlighting maps Mermaid SVG IDs (for example `flowchart-AUTO-1`) back to the textual node IDs in your diagrams so flowchart nodes like `Auto`, `ANY SD ALARM?`, and `ANY SOURCE?` correctly highlight their source lines in the editor.
-  - The Connect Existing Node modal discovers node labels directly from the rendered SVG (including `foreignObject`/`.nodeLabel` labels) and falls back to cleaned node IDs when no explicit label text is available.
+  - The Connect Existing Node modal lists nodes by their Mermaid IDs (for example `REPO`, `SYSTEM`) derived from SVG element IDs, and always writes edges using these IDs; it only falls back to visible labels when an ID cannot be normalized.

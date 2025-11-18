@@ -70,17 +70,28 @@
     return '';
   }
 
+  function normalizeNodeId(rawId) {
+    if (!rawId) return '';
+    let id = String(rawId);
+    // Prefer common Mermaid id patterns like flowchart-REPO-186 -> REPO
+    const primaryMatch = id.match(/(?:flowchart|state|id|node)[-_]([A-Za-z0-9_-]+)(?:[-_]\d+)?/);
+    if (primaryMatch) {
+      return primaryMatch[1];
+    }
+    // Fallback: strip generic prefixes/suffixes
+    id = id.replace(/^(state-|node-|flowchart-)/i, '');
+    id = id.replace(/-\d+$/i, '');
+    return id.trim();
+  }
+
   function deriveSourceName(ctx) {
     if (!ctx) return '';
+    // Always prefer the canonical node id derived from the SVG element id
+    const normalized = normalizeNodeId(ctx.id || '');
+    if (normalized) return normalized;
+    // Last resort: fall back to whatever label we can detect
     const byLabel = getNodeLabelFromElement(ctx.element);
-    if (byLabel) return byLabel;
-    let id = ctx.id || '';
-    if (id) {
-      id = id.replace(/^(state-|node-|flowchart-)/i, '');
-      id = id.replace(/-\d+$/i, '');
-      return id;
-    }
-    return '';
+    return byLabel || '';
   }
 
   function collectExistingNodeNames() {
@@ -90,16 +101,9 @@
     if (svg) {
       const nodes = svg.querySelectorAll('g.nodes > g.node');
       nodes.forEach(n => {
-        let label = getNodeLabelFromElement(n);
-        if (!label) {
-          let id = n.getAttribute('id') || '';
-          if (id) {
-            id = id.replace(/^(state-|node-|flowchart-)/i, '');
-            id = id.replace(/-\d+$/i, '');
-            label = id.trim();
-          }
-        }
-        if (label) names.add(label);
+        const rawId = n.getAttribute('id') || '';
+        const normalized = normalizeNodeId(rawId);
+        if (normalized) names.add(normalized);
       });
     }
     // Fallback: try to parse from editor lines (simple heuristic: words around `-->`)
