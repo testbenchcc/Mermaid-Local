@@ -74,12 +74,14 @@
     if (!rawId) return '';
     let id = String(rawId);
     // Prefer common Mermaid id patterns like flowchart-REPO-186 -> REPO
-    const primaryMatch = id.match(/(?:flowchart|state|id|node)[-_]([A-Za-z0-9_-]+)(?:[-_]\d+)?/);
+    const primaryMatch = id.match(/(?:flowchart|state|id|node)[-_]([A-Za-z0-9_-]+)/);
     if (primaryMatch) {
-      return primaryMatch[1];
+      id = primaryMatch[1];
+    } else {
+      // Fallback: strip generic prefixes like 'state-', 'node-', 'flowchart-'
+      id = id.replace(/^(state-|node-|flowchart-)/i, '');
     }
-    // Fallback: strip generic prefixes/suffixes
-    id = id.replace(/^(state-|node-|flowchart-)/i, '');
+    // In all cases, strip trailing dash-number suffixes (e.g., '-11')
     id = id.replace(/-\d+$/i, '');
     return id.trim();
   }
