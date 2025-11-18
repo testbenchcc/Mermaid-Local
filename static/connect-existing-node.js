@@ -7,9 +7,9 @@
 (function () {
   'use strict';
 
-  let modal, listbox, submitBtn, cancelBtn, refreshBtn, filterInput;
-  let nameInput, labelInput, shapeSelect, linkTypeSelect, linkTextInput, previewEl;
+  let modal, listbox, submitBtn, cancelBtn, refreshBtn, filterInput, sourceSelect, linkTypeSelect, linkLabelInput, previewEl;
   let lastContext = null; // { id, element, svg, sourceEvent }
+  let lastPresetConfig = null;
 
   function $(id) { return document.getElementById(id); }
 
@@ -20,11 +20,9 @@
     cancelBtn = cancelBtn || $('connect-existing-cancel');
     refreshBtn = refreshBtn || $('connect-existing-refresh');
     filterInput = filterInput || $('connect-existing-filter');
-    nameInput = nameInput || $('connect-existing-name');
-    labelInput = labelInput || $('connect-existing-label');
-    shapeSelect = shapeSelect || $('connect-existing-shape');
+    sourceSelect = sourceSelect || $('connect-existing-source');
     linkTypeSelect = linkTypeSelect || $('connect-existing-link-type');
-    linkTextInput = linkTextInput || $('connect-existing-link-text');
+    linkLabelInput = linkLabelInput || $('connect-existing-link-label');
     previewEl = previewEl || $('connect-existing-preview');
   }
 
@@ -33,29 +31,31 @@
     modal.style.display = 'none';
   }
 
-  function openModal(preset) {
+  function openModal() {
     ensureElements();
     if (!modal) return console.warn('[connect-existing-node] modal element missing');
+    const preset = lastPresetConfig || {};
     // Clear selection and filter
     if (filterInput) filterInput.value = '';
     if (listbox) listbox.selectedIndex = -1;
-
-    if (nameInput) nameInput.value = (preset && preset.targetId) || '';
-    if (labelInput) labelInput.value = (preset && preset.label) || '';
-    if (shapeSelect) shapeSelect.value = (preset && preset.shape) || '';
-    if (linkTypeSelect) linkTypeSelect.value = (preset && preset.linkType) || 'arrow';
-    if (linkTextInput) linkTextInput.value = (preset && preset.linkText) || '';
-
     rebuildNodeList();
 
+    if (linkTypeSelect) {
+      const desiredLinkType = (typeof preset.linkType === 'string' && preset.linkType) ? preset.linkType : (linkTypeSelect.value || '-->');
+      linkTypeSelect.value = desiredLinkType;
+    }
+
+    if (linkLabelInput) {
+      linkLabelInput.value = (typeof preset.linkLabel === 'string' && preset.linkLabel) ? preset.linkLabel : '';
+    }
+
+    populateSourceSelect((typeof preset.sourceId === 'string' && preset.sourceId) ? preset.sourceId : null);
+
+    updatePreview();
+
     modal.style.display = 'block';
-    // Focus listbox, filter, or name input for accessibility and update preview
-    requestAnimationFrame(() => {
-      try {
-        if (previewEl) updatePreview();
-        (filterInput || listbox || nameInput).focus();
-      } catch (_) {}
-    });
+    // Focus listbox or filter for accessibility
+    requestAnimationFrame(() => { try { (filterInput || listbox).focus(); } catch (_) {} });
   }
 
   function getNodeLabelFromElement(el) {
@@ -144,6 +144,13 @@
     return Array.from(names).sort((a, b) => a.localeCompare(b));
   }
 
+  function collectAllNodeNames() {
+    const names = new Set(collectExistingNodeNames());
+    const src = deriveSourceName(lastContext);
+    if (src) names.add(src);
+    return Array.from(names).sort((a, b) => a.localeCompare(b));
+  }
+
   function populateList(names) {
     if (!listbox) return;
     listbox.innerHTML = '';
@@ -160,95 +167,95 @@
     const filter = (filterInput && filterInput.value || '').trim().toLowerCase();
     const filtered = filter ? names.filter(n => n.toLowerCase().includes(filter)) : names;
     populateList(filtered);
-
-    const target = getTargetId();
-    if (listbox && target) {
-      Array.from(listbox.options).forEach((opt, idx) => {
-        if ((opt.value || '').trim() === target) {
-          listbox.selectedIndex = idx;
-        }
-      });
-    }
-    updatePreview();
   }
 
-  function getTargetId() {
-    if (nameInput && typeof nameInput.value === 'string') {
-      const v = nameInput.value.trim();
-      if (v) return v;
+  function buildEdgeLine(source, target, linkType, linkLabel) {
+    const src = (source || '').trim();
+    const dst = (target || '').trim();
+    const text = (linkLabel || '').trim();
+    const kind = (linkType || '-->').trim() || '-->';
+    if (!src || !dst) return '';
+
+    if (!text) {
+      if (kind === '-->') return `${src} --> ${dst}`;
+      if (kind === '---') return `${src} --- ${dst}`;
+      if (kind === '-.->') return `${src} -.-> ${dst}`;
+      if (kind === '==>') return `${src} ==> ${dst}`;
+      if (kind === '~~~') return `${src} ~~~ ${dst}`;
+      if (kind === '--o') return `${src} --o ${dst}`;
+      if (kind === '--x') return `${src} --x ${dst}`;
+      return `${src} ${kind} ${dst}`;
     }
-    if (listbox && typeof listbox.value === 'string') {
-      const v = listbox.value.trim();
-      if (v) return v;
-    }
-    return '';
+
+    if (kind === '-->') return `${src}-->|${text}|${dst}`;
+    if (kind === '---') return `${src}---|${text}|${dst}`;
+    if (kind === '-.->') return `${src}-. ${text} .-> ${dst}`;
+    if (kind === '==>') return `${src} == ${text} ==> ${dst}`;
+
+    return buildEdgeLine(src, dst, kind, '');
   }
 
-  function buildNodeDefinitionLine(targetId, label, shape) {
-    if (!targetId) return '';
-    const props = [];
-    if (shape) props.push(`shape: ${shape}`);
-    if (label) {
-      const safeLabel = String(label).replace(/"/g, '\\"');
-      props.push(`label: "${safeLabel}"`);
+  function populateSourceSelect(preferredId) {
+    ensureElements();
+    if (!sourceSelect) return;
+
+    const names = collectAllNodeNames();
+    const derived = deriveSourceName(lastContext) || '';
+    const seen = new Set();
+
+    sourceSelect.innerHTML = '';
+
+    function addOption(id) {
+      const value = (id || '').trim();
+      if (!value || seen.has(value)) return;
+      seen.add(value);
+      const opt = document.createElement('option');
+      opt.value = value;
+      opt.textContent = value;
+      sourceSelect.appendChild(opt);
     }
-    if (!props.length) return '';
-    return `    ${targetId}@{ ${props.join(', ')} }`;
+
+    if (derived) addOption(derived);
+    names.forEach(addOption);
+
+    if (!sourceSelect.options.length) {
+      const opt = document.createElement('option');
+      opt.value = derived || '';
+      opt.textContent = derived || '(no source detected)';
+      sourceSelect.appendChild(opt);
+    }
+
+    const desired = (preferredId && preferredId.trim()) || derived;
+    if (desired) {
+      try { sourceSelect.value = desired; } catch (_) {}
+    }
   }
 
-  function buildLinkLine(source, targetId, linkType, linkText) {
-    if (!source || !targetId) return '';
-    const text = (linkText || '').trim();
-    switch (linkType) {
-      case 'open':
-        if (text) return `    ${source}---|${text}|${targetId}`;
-        return `    ${source} --- ${targetId}`;
-      case 'dotted':
-        if (text) return `    ${source} -. ${text} .-> ${targetId}`;
-        return `    ${source} -.-> ${targetId}`;
-      case 'thick':
-        if (text) return `    ${source} == ${text} ==> ${targetId}`;
-        return `    ${source} ==> ${targetId}`;
-      case 'invisible':
-        if (text) return `    ${source} ~~~ ${targetId} %% ${text}`;
-        return `    ${source} ~~~ ${targetId}`;
-      case 'arrow':
-      default:
-        if (text) return `    ${source} -- ${text} --> ${targetId}`;
-        return `    ${source} --> ${targetId}`;
-    }
-  }
-
-  function buildSnippet() {
-    const source = deriveSourceName(lastContext) || '';
-    const targetId = getTargetId();
-    const label = (labelInput && labelInput.value || '').trim();
-    const shape = (shapeSelect && shapeSelect.value || '').trim();
-    const linkType = (linkTypeSelect && linkTypeSelect.value) || 'arrow';
-    const linkText = (linkTextInput && linkTextInput.value) || '';
-
-    const lines = [];
-    const nodeLine = buildNodeDefinitionLine(targetId, label, shape);
-    if (nodeLine) lines.push(nodeLine);
-    const linkLine = buildLinkLine(source, targetId, linkType, linkText);
-    if (linkLine) lines.push(linkLine);
-    return lines.join('\n');
+  function getCurrentConfig() {
+    ensureElements();
+    const explicitSource = (sourceSelect && sourceSelect.value || '').trim();
+    const source = explicitSource || deriveSourceName(lastContext) || '';
+    const target = (listbox && listbox.value || '').trim();
+    const linkType = (linkTypeSelect && linkTypeSelect.value || '-->').trim();
+    const linkLabel = (linkLabelInput && linkLabelInput.value || '').trim();
+    const edgeLine = buildEdgeLine(source, target, linkType, linkLabel);
+    return { source, target, linkType, linkLabel, edgeLine };
   }
 
   function updatePreview() {
+    ensureElements();
     if (!previewEl) return;
-    const snippet = buildSnippet();
-    previewEl.textContent = snippet || '';
+    const cfg = getCurrentConfig();
+    previewEl.textContent = cfg.edgeLine ? `    ${cfg.edgeLine}` : '';
   }
 
-  function appendSnippetToEditor(text) {
+  function appendLineToEditor(text) {
     const editor = $('editor');
     if (!editor) return console.warn('[connect-existing-node] editor not found');
 
     const current = editor.textContent || '';
     const needsNL = current.length > 0 && !current.endsWith('\n');
-    const prefix = needsNL ? current + '\n' : current;
-    const next = prefix + text;
+    const next = needsNL ? current + '\n' + text : current + text;
     editor.textContent = next;
     
     try { editor.dispatchEvent(new Event('input', { bubbles: true })); } catch (_) {}
@@ -261,34 +268,18 @@
   }
 
   function onSubmit() {
-    const targetId = getTargetId();
-    if (!targetId) {
+    const cfg = getCurrentConfig();
+    const name = cfg.target;
+    if (!name) {
       if (typeof showAlert === 'function') {
-        try { showAlert('Please select or enter a node name', 'warning'); } catch (_) {}
+        try { showAlert('Please select a node', 'warning'); } catch (_) {}
       } else {
-        try { console.warn('Please select or enter a node name'); } catch (_) {}
+        try { console.warn('Please select a node'); } catch (_) {}
       }
-      try {
-        if (nameInput && typeof nameInput.focus === 'function') {
-          nameInput.focus();
-        } else if (listbox && typeof listbox.focus === 'function') {
-          listbox.focus();
-        }
-      } catch (_) {}
+      try { listbox.focus(); } catch (_) {}
       return;
     }
-
-    const snippet = buildSnippet();
-    if (!snippet) {
-      if (typeof showAlert === 'function') {
-        try { showAlert('Cannot build connection – missing source node or configuration', 'warning'); } catch (_) {}
-      } else {
-        try { console.warn('Cannot build connection – missing source node or configuration'); } catch (_) {}
-      }
-      return;
-    }
-
-    appendSnippetToEditor(snippet);
+    if (cfg.edgeLine) appendLineToEditor(`    ${cfg.edgeLine}`);
     closeModal();
   }
 
@@ -297,7 +288,7 @@
     if (!modal) return;
     if (submitBtn) submitBtn.addEventListener('click', onSubmit);
     if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
-    if (refreshBtn) refreshBtn.addEventListener('click', rebuildNodeList);
+    if (refreshBtn) refreshBtn.addEventListener('click', () => { rebuildNodeList(); updatePreview(); });
     if (filterInput) {
       filterInput.addEventListener('input', rebuildNodeList);
       filterInput.addEventListener('keydown', (e) => {
@@ -306,33 +297,21 @@
       });
     }
     if (listbox) {
-      listbox.addEventListener('change', () => {
-        if (nameInput) nameInput.value = listbox.value || '';
-        updatePreview();
-      });
       listbox.addEventListener('dblclick', onSubmit);
+      listbox.addEventListener('change', updatePreview);
       listbox.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') { e.preventDefault(); onSubmit(); }
         if (e.key === 'Escape') { e.preventDefault(); closeModal(); }
       });
     }
-    if (nameInput) {
-      nameInput.addEventListener('input', updatePreview);
-      nameInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') { e.preventDefault(); onSubmit(); }
-      });
-    }
-    if (labelInput) {
-      labelInput.addEventListener('input', updatePreview);
-    }
-    if (shapeSelect) {
-      shapeSelect.addEventListener('change', updatePreview);
+    if (sourceSelect) {
+      sourceSelect.addEventListener('change', updatePreview);
     }
     if (linkTypeSelect) {
       linkTypeSelect.addEventListener('change', updatePreview);
     }
-    if (linkTextInput) {
-      linkTextInput.addEventListener('input', updatePreview);
+    if (linkLabelInput) {
+      linkLabelInput.addEventListener('input', updatePreview);
     }
     window.addEventListener('click', (event) => {
       if (event.target === modal) closeModal();
@@ -344,8 +323,8 @@
 
   function onContextMenuConnectExisting(e) {
     lastContext = (e && e.detail) || null;
-    const preset = (e && e.detail && e.detail.config) || null;
-    openModal(preset);
+    lastPresetConfig = (e && e.detail && e.detail.config) || null;
+    openModal();
   }
 
   function init() {

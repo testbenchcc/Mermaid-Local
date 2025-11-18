@@ -103,8 +103,71 @@
             </div>
             <div class="app-modal-body">
                 <div class="form-group">
-                    <label for="connect-new-name">Node name:</label>
-                    <input type="text" id="connect-new-name" class="form-control" placeholder="Enter node name">
+                    <label for="connect-new-source">Source node:</label>
+                    <select id="connect-new-source" class="form-control"></select>
+                </div>
+                <div class="form-group">
+                    <label for="connect-new-name">New node name (ID):</label>
+                    <input type="text" id="connect-new-name" class="form-control" placeholder="Enter node ID (e.g., NEW_NODE)">
+                </div>
+                <div class="form-group">
+                    <label for="connect-new-label">New node label (optional):</label>
+                    <input type="text" id="connect-new-label" class="form-control" placeholder="Visible label, e.g., &quot;New node&quot;">
+                </div>
+                <div class="form-group">
+                    <label for="connect-new-shape">New node shape:</label>
+                    <select id="connect-new-shape" class="form-control">
+                        <option value="">Default (rectangle)</option>
+                        <option value="rect">Process / rectangle</option>
+                        <option value="rounded">Event (rounded)</option>
+                        <option value="stadium">Terminal (stadium)</option>
+                        <option value="subproc">Subprocess</option>
+                        <option value="cyl">Database (cylinder)</option>
+                        <option value="circle">Start (circle)</option>
+                        <option value="sm-circ">Start (small circle)</option>
+                        <option value="dbl-circ">Stop (double circle)</option>
+                        <option value="fr-circ">Stop (framed circle)</option>
+                        <option value="diam">Decision (diamond)</option>
+                        <option value="hex">Prepare / conditional (hexagon)</option>
+                        <option value="lean-r">Input / output (lean right)</option>
+                        <option value="lean-l">Output / input (lean left)</option>
+                        <option value="trap-t">Manual operation (trapezoid top)</option>
+                        <option value="trap-b">Priority action (trapezoid bottom)</option>
+                        <option value="doc">Document</option>
+                        <option value="docs">Multi-document</option>
+                        <option value="processes">Multi-process</option>
+                        <option value="das">Direct access storage</option>
+                        <option value="lin-cyl">Disk storage</option>
+                        <option value="bow-rect">Stored data</option>
+                        <option value="win-pane">Internal storage</option>
+                        <option value="text">Text block</option>
+                        <option value="notch-rect">Card</option>
+                        <option value="cross-circ">Summary</option>
+                        <option value="hourglass">Collate</option>
+                        <option value="fork">Fork / join</option>
+                        <option value="flag">Paper tape</option>
+                        <option value="notch-pent">Loop limit</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="connect-new-link-type">Connecting line type:</label>
+                    <select id="connect-new-link-type" class="form-control">
+                        <option value="-->">Arrow (--&gt;)</option>
+                        <option value="---">Open (---)</option>
+                        <option value="-.->">Dotted (-.-&gt;)</option>
+                        <option value="==>">Thick (==&gt;)</option>
+                        <option value="~~~">Invisible (~~~)</option>
+                        <option value="--o">Circle edge (--o)</option>
+                        <option value="--x">Cross edge (--x)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="connect-new-link-label">Connecting line label (optional):</label>
+                    <input type="text" id="connect-new-link-label" class="form-control" placeholder="e.g., TRUE, FALSE, OK">
+                </div>
+                <div class="form-group">
+                    <label for="connect-new-preview">Resulting Mermaid snippet:</label>
+                    <div id="connect-new-preview" class="form-control" style="white-space: pre; font-family: monospace; min-height: 3em;"></div>
                 </div>
                 <div class="form-actions" style="display:flex; gap:10px; justify-content:flex-end;">
                     <button id="connect-new-cancel" type="button">Cancel</button>
@@ -121,57 +184,37 @@
                 <h2>Connect to Existing Node</h2>
             </div>
             <div class="app-modal-body">
+                <div class="form-group">
+                    <label for="connect-existing-source">Source node:</label>
+                    <select id="connect-existing-source" class="form-control"></select>
+                </div>
                 <div class="form-group" style="display:flex; gap:8px; align-items:center;">
                     <input type="text" id="connect-existing-filter" class="form-control" placeholder="Filter nodes..." style="flex:1; min-width:0;">
                     <button id="connect-existing-refresh" type="button">Refresh</button>
                 </div>
                 <div class="form-group">
                     <label for="connect-existing-list">Select a node:</label>
-                    <select id="connect-existing-list" size="6" class="form-control" style="width:100%"></select>
+                    <select id="connect-existing-list" size="10" class="form-control" style="width:100%"></select>
                 </div>
                 <div class="form-group">
-                    <label for="connect-existing-name">Node name (id):</label>
-                    <input type="text" id="connect-existing-name" class="form-control" placeholder="Node id (e.g. A, REPO, DB1)">
-                </div>
-                <div class="form-group">
-                    <label for="connect-existing-label">Node label (optional):</label>
-                    <input type="text" id="connect-existing-label" class="form-control" placeholder="What appears in the box">
-                </div>
-                <div class="form-group">
-                    <label for="connect-existing-shape">Node shape:</label>
-                    <select id="connect-existing-shape" class="form-control">
-                        <option value="">(use default)</option>
-                        <option value="rect">rect</option>
-                        <option value="rounded">rounded</option>
-                        <option value="stadium">stadium</option>
-                        <option value="subproc">subproc</option>
-                        <option value="cyl">cyl</option>
-                        <option value="circle">circle</option>
-                        <option value="diamond">diamond</option>
-                        <option value="hex">hex</option>
-                        <option value="lean-r">lean-r</option>
-                        <option value="lean-l">lean-l</option>
-                        <option value="docs">docs</option>
-                        <option value="text">text</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="connect-existing-link-type">Link type:</label>
+                    <label for="connect-existing-link-type">Connecting line type:</label>
                     <select id="connect-existing-link-type" class="form-control">
-                        <option value="arrow">Arrow (--&gt;)</option>
-                        <option value="open">Open (---)</option>
-                        <option value="dotted">Dotted (-.-&gt;)</option>
-                        <option value="thick">Thick (==&gt;)</option>
-                        <option value="invisible">Invisible (~~~)</option>
+                        <option value="-->">Arrow (--&gt;)</option>
+                        <option value="---">Open (---)</option>
+                        <option value="-.->">Dotted (-.-&gt;)</option>
+                        <option value="==>">Thick (==&gt;)</option>
+                        <option value="~~~">Invisible (~~~)</option>
+                        <option value="--o">Circle edge (--o)</option>
+                        <option value="--x">Cross edge (--x)</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="connect-existing-link-text">Link text (optional):</label>
-                    <input type="text" id="connect-existing-link-text" class="form-control" placeholder="e.g. TRUE, CONFIRM">
+                    <label for="connect-existing-link-label">Connecting line label (optional):</label>
+                    <input type="text" id="connect-existing-link-label" class="form-control" placeholder="e.g., TRUE, FALSE, OK">
                 </div>
                 <div class="form-group">
-                    <label for="connect-existing-preview">Preview:</label>
-                    <pre id="connect-existing-preview" class="form-control" style="white-space:pre-wrap; min-height:3em; font-family:monospace;"></pre>
+                    <label for="connect-existing-preview">Resulting Mermaid snippet:</label>
+                    <div id="connect-existing-preview" class="form-control" style="white-space: pre; font-family: monospace; min-height: 3em;"></div>
                 </div>
                 <div class="form-actions" style="display:flex; gap:10px; justify-content:flex-end;">
                     <button id="connect-existing-cancel" type="button">Cancel</button>

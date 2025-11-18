@@ -167,12 +167,14 @@ textarea, .code-editor {
 .app-modal-content {
     background-color: var(--bg-color);
     color: var(--text-color);
-    margin: 10% auto;
+    margin: 5vh auto;
     padding: 25px;
     border: 1px solid var(--border-color);
     border-radius: 8px;
     width: 60%;
     max-width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
     position: relative;
     z-index: 20001;
