@@ -66,43 +66,48 @@
       if (diagramType === 'flowchart') {
         // Match standalone node definitions in flowcharts
         // e.g. "A[Hard edge]" or "B(Round edge)"
-        const nodeMatches = line.matchAll(/\s*([A-Za-z0-9_-]+)(\[|\(|\{|\>|\{\{|\[\[)([^\]\)\}\>]*)\2?\s*$/g);
+        // Require the node id to start with a letter or digit so we don't
+        // accidentally treat arrow fragments like "-->" as nodes.
+        const nodeMatches = line.matchAll(/\s*([A-Za-z0-9][A-Za-z0-9_-]*)(\[|\(|\{|\>|\{\{|\[\[)([^\]\)\}\>]*)\2?\s*$/g);
         for (const match of nodeMatches) {
           const nodeId = match[1].trim();
-          const startChar = line.indexOf(match[0]);
-          const endChar = startChar + match[0].length;
+          const fromIndex = typeof match.index === 'number' ? match.index : 0;
+          const nodeStart = line.indexOf(nodeId, fromIndex);
+          if (nodeStart === -1) continue;
+          const nodeEnd = nodeStart + nodeId.length;
           
           nodeToTextMap.set(nodeId, {
-            start: { line: lineIndex, character: startChar },
-            end: { line: lineIndex, character: endChar }
+            start: { line: lineIndex, character: nodeStart },
+            end: { line: lineIndex, character: nodeEnd }
           });
-          console.log('Added flowchart node:', nodeId, 'at line', lineIndex);
+          console.log('Added flowchart node:', nodeId, 'at line', lineIndex, 'char', nodeStart);
         }
         
         // Match connections with implicit nodes in flowcharts
         // e.g. "A --> B" defines both A and B if not already defined
-        const connMatches = line.matchAll(/\s*([A-Za-z0-9_-]+)\s*(--.*?-->|==.*?==>|-.->|-.->|-.\|>|<-.->|<-.*-\|)\s*([A-Za-z0-9_-]+)/g);
+        const connMatches = line.matchAll(/\s*([A-Za-z0-9][A-Za-z0-9_-]*)\s*(--.*?-->|==.*?==>|-.->|-.->|-\.\|>|<-.->|<-.*-\|)\s*([A-Za-z0-9][A-Za-z0-9_-]*)/g);
         for (const match of connMatches) {
           const startNode = match[1].trim();
           const endNode = match[3].trim();
-          const startChar = line.indexOf(match[0]);
-          const endChar = startChar + match[0].length;
+          const matchStart = typeof match.index === 'number' ? match.index : 0;
+
+          const startNodeStart = line.indexOf(startNode, matchStart);
+          const endNodeStart = line.indexOf(endNode, startNodeStart + startNode.length);
           
-          if (!nodeToTextMap.has(startNode)) {
+          if (startNodeStart !== -1 && !nodeToTextMap.has(startNode)) {
             nodeToTextMap.set(startNode, {
-              start: { line: lineIndex, character: startChar },
-              end: { line: lineIndex, character: startChar + startNode.length }
+              start: { line: lineIndex, character: startNodeStart },
+              end: { line: lineIndex, character: startNodeStart + startNode.length }
             });
-            console.log('Added flowchart connection source:', startNode, 'at line', lineIndex);
+            console.log('Added flowchart connection source:', startNode, 'at line', lineIndex, 'char', startNodeStart);
           }
           
-          if (!nodeToTextMap.has(endNode)) {
-            const endNodeStart = line.indexOf(endNode, startChar);
+          if (endNodeStart !== -1 && !nodeToTextMap.has(endNode)) {
             nodeToTextMap.set(endNode, {
               start: { line: lineIndex, character: endNodeStart },
               end: { line: lineIndex, character: endNodeStart + endNode.length }
             });
-            console.log('Added flowchart connection target:', endNode, 'at line', lineIndex);
+            console.log('Added flowchart connection target:', endNode, 'at line', lineIndex, 'char', endNodeStart);
           }
         }
       } 
