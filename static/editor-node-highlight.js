@@ -311,75 +311,67 @@
    */
   function extractNodeId(element) {
     console.log('Extracting node ID from element:', element);
-    console.log('Element ID:', element.getAttribute('id'));
-    
-    // Attempt to get ID directly
+
+    // Attempt to get an ID directly from the element
     let id = element.getAttribute('id');
-    
-    // Special case for Mermaid v9+ flowchart nodes
+
+    // If this group has no ID, try a common Mermaid pattern where the shape holds the ID
+    if (!id && element.tagName === 'g') {
+      const shape = element.querySelector('rect, circle, ellipse, polygon, path');
+      if (shape) {
+        id = shape.getAttribute('id');
+      }
+    }
+
+    console.log('Element/shape ID:', id);
+
+    // First preference: normalize common Mermaid ID patterns (covers flowchart/state/node prefixes)
+    if (id) {
+      // flowchart-A-17 -> A, id-1-33 -> 1, node-XYZ-5 -> XYZ, state-STOP-1 -> STOP
+      const idMatch = id.match(/(?:flowchart|state|id|node)[-_]([A-Za-z0-9_-]+)(?:[-_]\d+)?/);
+      if (idMatch) {
+        const extractedId = idMatch[1];
+        console.log('Extracted ID from pattern (primary):', extractedId);
+        return extractedId;
+      }
+
+      // Simple ID with no prefix
+      if (/^[A-Za-z0-9_-]+$/.test(id)) {
+        console.log('Using simple ID (primary):', id);
+        return id;
+      }
+    }
+
+    // Fallback: for flowchart nodes, try to infer from label text
     if (element.classList && element.classList.contains('node')) {
-      // For flowchart nodes, check for label which often contains the node ID
       const labelEl = element.querySelector('.nodeLabel, .label');
       if (labelEl) {
         const labelText = labelEl.textContent.trim();
         console.log('Node label text:', labelText);
-        
-        // Try to extract the node ID from the first word
+
         const nodeIdMatch = labelText.match(/^([A-Za-z0-9_-]+)(?:\s|$)/);
         if (nodeIdMatch) {
-          console.log('Found node ID from label:', nodeIdMatch[1]);
+          console.log('Found node ID from label fallback:', nodeIdMatch[1]);
           return nodeIdMatch[1];
         }
       }
     }
-    
-    // If no direct ID, look for text content
-    if (!id) {
-      // Try to find text element within this node
-      const textEl = element.querySelector('text');
-      if (textEl) {
-        const text = textEl.textContent.trim();
-        console.log('Text content:', text);
-        
-        // Extract first word as potential ID
-        const match = text.match(/^([A-Za-z0-9_-]+)(?:\s|$)/);
-        if (match) {
-          id = match[1];
-          console.log('Extracted ID from text:', id);
-        }
+
+    // Additional fallback: look for text element content inside the node
+    const textEl = element.querySelector('text');
+    if (textEl) {
+      const text = textEl.textContent.trim();
+      console.log('Text content:', text);
+
+      const match = text.match(/^([A-Za-z0-9_-]+)(?:\s|$)/);
+      if (match) {
+        const fromText = match[1];
+        console.log('Extracted ID from text fallback:', fromText);
+        return fromText;
       }
     }
-    
-    // If we still don't have an ID, look at the shape ID
-    if (!id && element.tagName === 'g') {
-      // Check for rect, circle, etc. with an ID
-      const shape = element.querySelector('rect, circle, ellipse, polygon, path');
-      if (shape) {
-        id = shape.getAttribute('id');
-        console.log('Got ID from shape:', id);
-      }
-    }
-    
-    // Process ID if found
-    if (id) {
-      // Common patterns in Mermaid SVG IDs
-      // flowchart-A-17 -> A
-      // id-1-33 -> 1
-      const idMatch = id.match(/(?:flowchart|state|id|node)[-_]([A-Za-z0-9_-]+)(?:[-_]\d+)?/);
-      if (idMatch) {
-        const extractedId = idMatch[1];
-        console.log('Extracted ID from pattern:', extractedId);
-        return extractedId;
-      }
-      
-      // Simple ID
-      if (/^[A-Za-z0-9_-]+$/.test(id)) {
-        console.log('Using simple ID:', id);
-        return id;
-      }
-    }
-    
-    // Try a last approach - look for a string that could be a node ID in our map
+
+    // Last resort: any word in the element text that matches a known node ID
     const allText = element.textContent.trim();
     const words = allText.split(/\s+/);
     for (const word of words) {
@@ -388,7 +380,7 @@
         return word;
       }
     }
-    
+
     console.warn('Failed to extract node ID');
     return null;
   }

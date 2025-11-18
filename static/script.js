@@ -203,7 +203,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const saveModal = document.getElementById('save-modal');
     const loadModal = document.getElementById('load-modal');
     const saveBtn = document.getElementById('save-btn');
-    const saveAsBtn = document.getElementById('save-as-btn');
     const loadBtn = document.getElementById('load-btn');
     const newBtn = document.getElementById('new-btn');
     const saveClose = document.getElementById('save-close');

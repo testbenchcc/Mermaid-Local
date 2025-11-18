@@ -64,7 +64,7 @@
     if (byLabel) return byLabel;
     let id = ctx.id || '';
     if (id) {
-      id = id.replace(/^(state-|node-)/i, '');
+      id = id.replace(/^(state-|node-|flowchart-)/i, '');
       id = id.replace(/-\d+$/i, '');
       return id;
     }

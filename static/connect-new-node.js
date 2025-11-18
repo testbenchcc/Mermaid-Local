@@ -86,7 +86,7 @@
     let id = ctx.id || '';
     if (id) {
       // Remove common prefixes like 'state-' or 'node-'
-      id = id.replace(/^(state-|node-)/i, '');
+      id = id.replace(/^(state-|node-|flowchart-)/i, '');
       // Remove trailing dash-number suffixes (e.g., '-4')
       id = id.replace(/-\d+$/i, '');
       return id;
