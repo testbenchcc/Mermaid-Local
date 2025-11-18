@@ -53,6 +53,18 @@
           txt = (textNode.textContent || '').trim();
         }
       }
+      if (!txt && labelGroup) {
+        const fo = labelGroup.querySelector('foreignObject');
+        if (fo) {
+          txt = (fo.textContent || '').trim();
+        }
+      }
+      if (!txt) {
+        const spanLabel = el.querySelector('.nodeLabel');
+        if (spanLabel) {
+          txt = (spanLabel.textContent || '').trim();
+        }
+      }
       if (txt) return txt;
     } catch (_) {}
     return '';
@@ -78,7 +90,15 @@
     if (svg) {
       const nodes = svg.querySelectorAll('g.nodes > g.node');
       nodes.forEach(n => {
-        const label = getNodeLabelFromElement(n);
+        let label = getNodeLabelFromElement(n);
+        if (!label) {
+          let id = n.getAttribute('id') || '';
+          if (id) {
+            id = id.replace(/^(state-|node-|flowchart-)/i, '');
+            id = id.replace(/-\d+$/i, '');
+            label = id.trim();
+          }
+        }
         if (label) names.add(label);
       });
     }

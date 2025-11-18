@@ -55,7 +55,7 @@ flowchart LR
   RECIRCULATE -- DURATION --> RECIRCULATE
 ```
 - [] When `Connect to Existing Node` is selected from the right click menu, not all of the nodes are listed in the modal.
--[] There is still an issue with selecting a node and highlighting in the left panel. Here is the console output when I click a node that does not highight the left panel node words red.
+- [x] There is still an issue with selecting a node and highlighting in the left panel. Here is the console output when I click a node that does not highight the left panel node words red.
 ```console
 editor-node-highlight.js?v=20250807-3:407 Force updating node map before processing click
 editor-node-highlight.js?v=20250807-3:29 Mapping nodes to text
