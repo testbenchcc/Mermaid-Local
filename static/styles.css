@@ -66,12 +66,16 @@ h1 {
 }
 
 .preview-pane {
-    width: 70%;
+    width: 49%;
     padding: 1rem;
     overflow: auto;
     background-color: var(--preview-bg);
     transition: background-color 0.3s ease, width 0.1s ease;
     min-width: 0;
+}
+
+#preview svg {
+    max-width: none !important;
 }
 
 textarea, .code-editor {

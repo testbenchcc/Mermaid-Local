@@ -9,8 +9,6 @@ import uvicorn
 import os
 import database
 
-version = os.getenv("BUILD_TAG") or os.getenv("APP_VERSION") or ""
-
 # Define Pydantic models for request/response validation
 class DiagramCreate(BaseModel):
     title: str
@@ -55,7 +53,7 @@ def startup_event():
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request, "version": version})
+    return templates.TemplateResponse("index.html", {"request": request})
 
 # API endpoints for diagram management
 @app.post("/api/diagrams", response_model=DiagramResponse)

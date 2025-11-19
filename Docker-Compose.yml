@@ -1,15 +1,16 @@
 services:
   mermaid-local:
-    image: alpine:3.22.2
+    image: mermaid-local:latest
     build:
+      context: https://github.com/testbenchcc/Mermaid-Local.git
       dockerfile: Dockerfile
     container_name: mermaid-local
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --workers 4
     ports:
       - "8080:8000"
     restart: unless-stopped
     environment:
       - PYTHONUNBUFFERED=1
       - DB_PATH=/app/data/diagrams.db
-      - APP_VERSION=${BUILD_TAG}
     volumes:
-      - /home/tbrinkhuis/Mermaid-Local:/app/datas
+      - /home/tbrinkhuils/Mermaid-Local:/app/data
