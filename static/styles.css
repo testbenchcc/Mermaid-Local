@@ -197,7 +197,7 @@ textarea, .code-editor {
     padding-bottom: 10px;
     border-bottom: 1px solid var(--border-color);
 }
-/* Layout tweaks specific to the Connect New Node modal so the preview fills the modal body */
+
 #connect-new-modal .app-modal-content {
     display: flex;
     flex-direction: column;
@@ -221,9 +221,10 @@ textarea, .code-editor {
 
 #connect-new-modal .connect-new-right {
     display: flex;
-    align-items: stretch;
-    justify-content: stretch;
     flex: 1;
+    min-height: 0;
+    align-items: center;
+    justify-content: center;
 }
 
 #connect-new-modal .connect-new-right .form-group {
