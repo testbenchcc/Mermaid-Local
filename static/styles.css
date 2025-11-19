@@ -197,11 +197,39 @@ textarea, .code-editor {
     padding-bottom: 10px;
     border-bottom: 1px solid var(--border-color);
 }
+/* Layout tweaks specific to the Connect New Node modal so the preview fills the modal body */
+#connect-new-modal .app-modal-content {
+    display: flex;
+    flex-direction: column;
+}
+
+#connect-new-modal .app-modal-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+#connect-new-modal .connect-new-layout {
+    flex: 1;
+    min-height: 0;
+}
+
+#connect-new-modal .connect-new-left,
+#connect-new-modal .connect-new-right {
+    min-height: 0;
+}
 
 #connect-new-modal .connect-new-right {
     display: flex;
-    align-items: center;
-    justify-content: center;
+    align-items: stretch;
+    justify-content: stretch;
+    flex: 1;
+}
+
+#connect-new-modal .connect-new-right .form-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 #connect-new-preview {
@@ -210,6 +238,7 @@ textarea, .code-editor {
     justify-content: center;
     width: 100%;
     height: 100%;
+    flex: 1;
 }
 
 .app-modal-footer {
