@@ -171,8 +171,8 @@ textarea, .code-editor {
     padding: 25px;
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    width: 60%;
-    max-width: 500px;
+    width: 70%;
+    max-width: 900px;
     max-height: 80vh;
     overflow-y: auto;
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
@@ -196,6 +196,18 @@ textarea, .code-editor {
     margin-bottom: 15px;
     padding-bottom: 10px;
     border-bottom: 1px solid var(--border-color);
+}
+
+#connect-new-modal .connect-new-right {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#connect-new-preview {
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .app-modal-footer {
