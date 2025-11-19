@@ -8,6 +8,7 @@ from typing import List, Optional
 import uvicorn
 import os
 import database
+import subprocess
 
 # Define Pydantic models for request/response validation
 class DiagramCreate(BaseModel):
@@ -45,6 +46,16 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Set up templates
 templates = Jinja2Templates(directory="templates")
+
+def get_git_tag():
+    try:
+        tag = subprocess.check_output(
+            ["git", "describe", "--tags", "--always"],
+            stderr=subprocess.STDOUT
+        ).decode().strip()
+        return tag
+    except subprocess.CalledProcessError:
+        return "unknown"
 
 # Initialize database on startup
 @app.on_event("startup")

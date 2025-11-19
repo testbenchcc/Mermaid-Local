@@ -119,7 +119,7 @@
                         <div class="form-group">
                             <label for="connect-new-shape">New node shape:</label>
                             <select id="connect-new-shape" class="form-control">
-                                <option value="">Default (rectangle)</option>
+                                <option value="">General (rectangle)</option>
                                 <option value="rounded">Event (rounded)</option>
                                 <option value="stadium">Terminal (stadium)</option>
                                 <option value="subproc">Subprocess</option>
@@ -173,37 +173,43 @@
                 <h2>Connect to Existing Node</h2>
             </div>
             <div class="app-modal-body">
-                <div class="form-group">
-                    <label for="connect-existing-source">Source node:</label>
-                    <select id="connect-existing-source" class="form-control"></select>
-                </div>
-                <div class="form-group" style="display:flex; gap:8px; align-items:center;">
-                    <input type="text" id="connect-existing-filter" class="form-control" placeholder="Filter nodes..." style="flex:1; min-width:0;">
-                    <button id="connect-existing-refresh" type="button">Refresh</button>
-                </div>
-                <div class="form-group">
-                    <label for="connect-existing-list">Select a node:</label>
-                    <select id="connect-existing-list" size="10" class="form-control" style="width:100%"></select>
-                </div>
-                <div class="form-group">
-                    <label for="connect-existing-link-type">Connecting line type:</label>
-                    <select id="connect-existing-link-type" class="form-control">
-                        <option value="-->">Arrow (--&gt;)</option>
-                        <option value="---">Open (---)</option>
-                        <option value="-.->">Dotted (-.-&gt;)</option>
-                        <option value="==>">Thick (==&gt;)</option>
-                        <option value="~~~">Invisible (~~~)</option>
-                        <option value="--o">Circle edge (--o)</option>
-                        <option value="--x">Cross edge (--x)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="connect-existing-link-label">Connecting line label (optional):</label>
-                    <input type="text" id="connect-existing-link-label" class="form-control" placeholder="e.g., TRUE, FALSE, OK">
-                </div>
-                <div class="form-group">
-                    <label for="connect-existing-preview">Resulting Mermaid snippet:</label>
-                    <div id="connect-existing-preview" class="form-control" style="white-space: pre; font-family: monospace; min-height: 3em;"></div>
+                <div class="connect-existing-layout" style="display:flex; gap:16px; align-items:flex-start;">
+                    <div class="connect-existing-left" style="flex:1; min-width:0;">
+                        <div class="form-group">
+                            <label for="connect-existing-source">Source node:</label>
+                            <select id="connect-existing-source" class="form-control"></select>
+                        </div>
+                        <div class="form-group">
+                            <label for="connect-existing-link-type">Connecting line type:</label>
+                            <select id="connect-existing-link-type" class="form-control">
+                                <option value="-->">Arrow (--&gt;)</option>
+                                <option value="---">Open (---)</option>
+                                <option value="-.->">Dotted (-.-&gt;)</option>
+                                <option value="==>">Thick (==&gt;)</option>
+                                <option value="~~~">Invisible (~~~)</option>
+                                <option value="--o">Circle edge (--o)</option>
+                                <option value="--x">Cross edge (--x)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="connect-existing-link-label">Connecting line label (optional):</label>
+                            <input type="text" id="connect-existing-link-label" class="form-control" placeholder="e.g., TRUE, FALSE, OK">
+                        </div>
+                        <div class="form-group">
+                            <label for="connect-existing-preview">Resulting Mermaid snippet:</label>
+                            <div id="connect-existing-preview" class="form-control" style="white-space: pre; font-family: monospace; min-height: 3em;"></div>
+                        </div>
+                    </div>
+                    <div class="connect-existing-right" style="flex:1; min-width:0;">
+                        <div class="form-group" style="display:flex; gap:8px; align-items:center;">
+                            <input type="text" id="connect-existing-filter" class="form-control" placeholder="Filter nodes..." style="flex:1; min-width:0;">
+                            <button id="connect-existing-refresh" type="button">Refresh</button>
+                        </div>
+                        <div class="form-group">
+                            <label for="connect-existing-list">Select a node:</label>
+                            <select id="connect-existing-list" size="10" class="form-control" style="width:100%"></select>
+                        </div>
+                    </div>
                 </div>
                 <div class="form-actions" style="display:flex; gap:10px; justify-content:flex-end;">
                     <button id="connect-existing-cancel" type="button">Cancel</button>
