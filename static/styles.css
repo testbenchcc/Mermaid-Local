@@ -74,10 +74,6 @@ h1 {
     min-width: 0;
 }
 
-#preview svg {
-    max-width: none !important;
-}
-
 textarea, .code-editor {
     flex: 1;
     resize: none;
