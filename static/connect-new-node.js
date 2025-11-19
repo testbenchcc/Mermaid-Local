@@ -177,16 +177,50 @@
       return String(text).replace(/"/g, '\\"');
     }
 
-    if (cleanShape) {
-      if (cleanLabel) {
-        return `${cleanId}@{ shape: ${cleanShape}, label: "${escapeLabel(cleanLabel)}" }`;
-      }
-      return `${cleanId}@{ shape: ${cleanShape} }`;
+    // Map short shape names to classic bracket-based syntax
+    // See docs/mermaid-node-shapes-and-links.md (Classic Bracket-Based Shapes)
+    const shapeBrackets = {
+      // Default rectangle / process
+      rect: { open: '["', close: '"]' },
+      // Rounded rectangle: id(This is the text in the box)
+      rounded: { open: '("', close: '")' },
+      // Stadium / pill: id([This is the text in the box])
+      stadium: { open: '(["', close: '"])' },
+      // Subroutine: id[[This is the text in the box]]
+      subproc: { open: '[["', close: '"]]' },
+      // Cylinder / database: id[(Database)]
+      cyl: { open: '[("', close: '")]' },
+      // Circle: id((This is the text in the circle))
+      circle: { open: '(("', close: '"))' },
+      // Small circle: no direct bracket form; approximate with regular circle
+      'sm-circ': { open: '(("', close: '"))' },
+      // Double circle: id(((This is the text in the circle)))
+      'dbl-circ': { open: '((("', close: '")))' },
+      // Diamond / decision: id{This is the text in the box}
+      diam: { open: '{"', close: '"}' },
+      // Hexagon: id{{This is the text in the box}}
+      hex: { open: '{{"', close: '"}}' },
+      // Parallelogram: id[/This is the text in the box/]
+      'lean-r': { open: '[/"', close: '"/]' },
+      // Parallelogram alt: id[\This is the text in the box\]
+      'lean-l': { open: '[\\"', close: '"\\]' },
+      // Trapezoid: A[/Christmas\]
+      'trap-t': { open: '[/"', close: '"\\]' },
+      // Trapezoid alt: B[\Go shopping/]
+      'trap-b': { open: '[\\"', close: '"/]' },
+      // For shapes without explicit classic brackets, fall back to rectangle behavior below
+    };
+
+    const brackets = cleanShape && (shapeBrackets[cleanShape] || null);
+    const effectiveLabel = cleanLabel || cleanId;
+
+    if (brackets) {
+      return `${cleanId}${brackets.open}${escapeLabel(effectiveLabel)}${brackets.close}`;
     }
 
+    // No specific shape mapping: if a label is provided, use a simple rectangle syntax with quotes
     if (cleanLabel) {
-      // Default node with explicit label
-      return `${cleanId}[${cleanLabel}]`;
+      return `${cleanId}["${escapeLabel(cleanLabel)}"]`;
     }
 
     return cleanId;
