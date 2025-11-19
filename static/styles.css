@@ -66,7 +66,7 @@ h1 {
 }
 
 .preview-pane {
-    width: 49%;
+    width: 70%;
     padding: 1rem;
     overflow: auto;
     background-color: var(--preview-bg);
