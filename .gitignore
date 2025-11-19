@@ -5,3 +5,4 @@
 commit-and-tag.ps1
 .ps1
 /venv
+.env

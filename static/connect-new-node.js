@@ -248,6 +248,8 @@
     if (kind === '---') return `${src}---|${text}|${dst}`;
     if (kind === '-.->') return `${src}-. ${text} .-> ${dst}`;
     if (kind === '==>') return `${src} == ${text} ==> ${dst}`;
+    if (kind === '--o') return `${src}-. ${text} .-o ${dst}`;
+    if (kind === '--x') return `${src}-. ${text} .-x ${dst}`;
 
     // Other link types do not have a standard labeled form; fall back to unlabeled
     return buildEdgeLine(src, dst, kind, '');

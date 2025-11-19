@@ -191,6 +191,8 @@
     if (kind === '---') return `${src}---|${text}|${dst}`;
     if (kind === '-.->') return `${src}-. ${text} .-> ${dst}`;
     if (kind === '==>') return `${src} == ${text} ==> ${dst}`;
+    if (kind === '--o') return `${src}-. ${text} .-o ${dst}`;
+    if (kind === '--x') return `${src}-. ${text} .-x ${dst}`;
 
     return buildEdgeLine(src, dst, kind, '');
   }
