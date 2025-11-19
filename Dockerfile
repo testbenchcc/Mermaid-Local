@@ -13,6 +13,9 @@ RUN git clone https://github.com/testbenchcc/Mermaid-Local.git
 # Switch into the repo directory for the next steps
 WORKDIR /app/Mermaid-Local
 
+RUN BUILD_TAG=$(git describe --tags --always)
+RUN export BUILD_TAG
+
 RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
