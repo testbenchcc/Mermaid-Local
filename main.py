@@ -8,7 +8,8 @@ from typing import List, Optional
 import uvicorn
 import os
 import database
-import subprocess
+
+version = os.getenv("BUILD_TAG") or os.getenv("APP_VERSION") or ""
 
 # Define Pydantic models for request/response validation
 class DiagramCreate(BaseModel):
@@ -47,16 +48,6 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 # Set up templates
 templates = Jinja2Templates(directory="templates")
 
-def get_git_tag():
-    try:
-        tag = subprocess.check_output(
-            ["git", "describe", "--tags", "--always"],
-            stderr=subprocess.STDOUT
-        ).decode().strip()
-        return tag
-    except subprocess.CalledProcessError:
-        return "unknown"
-
 # Initialize database on startup
 @app.on_event("startup")
 def startup_event():
@@ -64,7 +55,7 @@ def startup_event():
 
 @app.get("/", response_class=HTMLResponse)
 async def read_root(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse("index.html", {"request": request, "version": version})
 
 # API endpoints for diagram management
 @app.post("/api/diagrams", response_model=DiagramResponse)

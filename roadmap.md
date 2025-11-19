@@ -7,6 +7,7 @@ This file tracks medium- and long-term goals for the project.
 - Improve node selection and highlighting across all nodes.
 - Expand right-click context menu with additional PLC-related node shapes and types.
 - Add basic pan and zoom controls (mouse-wheel zoom and middle-button drag) for the main preview pane.
+ - Surface build version in the title bar. *(Implemented: header shows build from `BUILD_TAG`/`APP_VERSION` as a subscript when provided.)*
 
 ## Longer-term
 - Polish UI/UX for editing larger diagrams.
