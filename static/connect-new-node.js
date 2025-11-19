@@ -306,6 +306,43 @@
 
     return { source, nodeId, nodeLabel, shape, linkType, linkLabel, nodeDef, edgeLine };
   }
+  function renderMermaidPreview(container, code) {
+    if (!container) return;
+    const trimmed = (code || '').trim();
+    if (!trimmed) {
+      container.innerHTML = '';
+      container.classList.remove('mermaid');
+      return;
+    }
+    try {
+      if (window.mermaid && typeof window.mermaid.render === 'function') {
+        const id = 'modal-mermaid-' + Math.random().toString(36).slice(2);
+        const res = window.mermaid.render(id, trimmed);
+        if (res && typeof res.then === 'function') {
+          res.then((out) => {
+            if (!out) return;
+            container.innerHTML = out.svg || out;
+          }).catch(() => {
+            container.textContent = trimmed;
+          });
+        } else if (typeof res === 'string') {
+          container.innerHTML = res;
+        } else if (res && typeof res.svg === 'string') {
+          container.innerHTML = res.svg;
+        } else {
+          container.textContent = trimmed;
+        }
+      } else if (window.mermaid && typeof window.mermaid.init === 'function') {
+        container.classList.add('mermaid');
+        container.textContent = trimmed;
+        window.mermaid.init(undefined, container);
+      } else {
+        container.textContent = trimmed;
+      }
+    } catch (_) {
+      container.textContent = trimmed;
+    }
+  }
 
   function updatePreview() {
     ensureElements();
@@ -316,7 +353,9 @@
     if (cfg.nodeDef) lines.push(`    ${cfg.nodeDef}`);
     if (cfg.edgeLine) lines.push(`    ${cfg.edgeLine}`);
 
-    previewEl.textContent = lines.join('\n');
+    const snippet = lines.join('\n');
+    const code = snippet ? `flowchart LR\n${snippet}` : '';
+    renderMermaidPreview(previewEl, code);
   }
 
   function onSubmit() {
