@@ -102,72 +102,61 @@
                 <h2>Connect New Node</h2>
             </div>
             <div class="app-modal-body">
-                <div class="form-group">
-                    <label for="connect-new-source">Source node:</label>
-                    <select id="connect-new-source" class="form-control"></select>
-                </div>
-                <div class="form-group">
-                    <label for="connect-new-name">New node name (ID):</label>
-                    <input type="text" id="connect-new-name" class="form-control" placeholder="Enter node ID (e.g., NEW_NODE)">
-                </div>
-                <div class="form-group">
-                    <label for="connect-new-label">New node label (optional):</label>
-                    <input type="text" id="connect-new-label" class="form-control" placeholder="Visible label, e.g., &quot;New node&quot;">
-                </div>
-                <div class="form-group">
-                    <label for="connect-new-shape">New node shape:</label>
-                    <select id="connect-new-shape" class="form-control">
-                        <option value="">Default (rectangle)</option>
-                        <option value="rect">Process / rectangle</option>
-                        <option value="rounded">Event (rounded)</option>
-                        <option value="stadium">Terminal (stadium)</option>
-                        <option value="subproc">Subprocess</option>
-                        <option value="cyl">Database (cylinder)</option>
-                        <option value="circle">Start (circle)</option>
-                        <option value="sm-circ">Start (small circle)</option>
-                        <option value="dbl-circ">Stop (double circle)</option>
-                        <option value="fr-circ">Stop (framed circle)</option>
-                        <option value="diam">Decision (diamond)</option>
-                        <option value="hex">Prepare / conditional (hexagon)</option>
-                        <option value="lean-r">Input / output (lean right)</option>
-                        <option value="lean-l">Output / input (lean left)</option>
-                        <option value="trap-t">Manual operation (trapezoid top)</option>
-                        <option value="trap-b">Priority action (trapezoid bottom)</option>
-                        <option value="doc">Document</option>
-                        <option value="docs">Multi-document</option>
-                        <option value="processes">Multi-process</option>
-                        <option value="das">Direct access storage</option>
-                        <option value="lin-cyl">Disk storage</option>
-                        <option value="bow-rect">Stored data</option>
-                        <option value="win-pane">Internal storage</option>
-                        <option value="text">Text block</option>
-                        <option value="notch-rect">Card</option>
-                        <option value="cross-circ">Summary</option>
-                        <option value="hourglass">Collate</option>
-                        <option value="fork">Fork / join</option>
-                        <option value="flag">Paper tape</option>
-                        <option value="notch-pent">Loop limit</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="connect-new-link-type">Connecting line type:</label>
-                    <select id="connect-new-link-type" class="form-control">
-                        <option value="-->">Arrow (--&gt;)</option>
-                        <option value="---">Open (---)</option>
-                        <option value="-.->">Dotted (-.-&gt;)</option>
-                        <option value="==>">Thick (==&gt;)</option>
-                        <option value="~~~">Invisible (~~~)</option>
-                        <option value="--o">Circle edge (--o)</option>
-                        <option value="--x">Cross edge (--x)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="connect-new-link-label">Connecting line label (optional):</label>
-                    <input type="text" id="connect-new-link-label" class="form-control" placeholder="e.g., TRUE, FALSE, OK">
-                </div>
-                <div class="form-group">
-                    <label for="connect-new-preview">Resulting Mermaid snippet:</label>
-                    <div id="connect-new-preview" class="form-control" style="white-space: pre; font-family: monospace; min-height: 3em;"></div>
+                <div class="connect-new-layout" style="display:flex; gap:16px; align-items:flex-start;">
+                    <div class="connect-new-left">
+                        <div class="form-group">
+                            <label for="connect-new-source">Source node:</label>
+                            <select id="connect-new-source" class="form-control"></select>
+                        </div>
+                        <div class="form-group">
+                            <label for="connect-new-name">New node name (ID):</label>
+                            <input type="text" id="connect-new-name" class="form-control" placeholder="Enter node ID (e.g., NEW_NODE)">
+                        </div>
+                        <div class="form-group">
+                            <label for="connect-new-label">New node label (optional):</label>
+                            <input type="text" id="connect-new-label" class="form-control" placeholder="Visible label, e.g., &quot;New node&quot;">
+                        </div>
+                        <div class="form-group">
+                            <label for="connect-new-shape">New node shape:</label>
+                            <select id="connect-new-shape" class="form-control">
+                                <option value="">Default (rectangle)</option>
+                                <option value="rounded">Event (rounded)</option>
+                                <option value="stadium">Terminal (stadium)</option>
+                                <option value="subproc">Subprocess</option>
+                                <option value="cyl">Database (cylinder)</option>
+                                <option value="circle">Start (circle)</option>
+                                <option value="dbl-circ">Stop (double circle)</option>
+                                <option value="diam">Decision (diamond)</option>
+                                <option value="hex">Prepare / conditional (hexagon)</option>
+                                <option value="lean-r">Input / output (lean right)</option>
+                                <option value="lean-l">Output / input (lean left)</option>
+                                <option value="trap-t">Manual operation (trapezoid top)</option>
+                                <option value="trap-b">Priority action (trapezoid bottom)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="connect-new-link-type">Connecting line type:</label>
+                            <select id="connect-new-link-type" class="form-control">
+                                <option value="-->">Arrow (--&gt;)</option>
+                                <option value="---">Open (---)</option>
+                                <option value="-.->">Dotted (-.-&gt;)</option>
+                                <option value="==>">Thick (==&gt;)</option>
+                                <option value="~~~">Invisible (~~~)</option>
+                                <option value="--o">Circle edge (--o)</option>
+                                <option value="--x">Cross edge (--x)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="connect-new-link-label">Connecting line label (optional):</label>
+                            <input type="text" id="connect-new-link-label" class="form-control" placeholder="e.g., TRUE, FALSE, OK">
+                        </div>
+                    </div>
+                    <div class="connect-new-right">
+                        <div class="form-group">
+                            <label for="connect-new-preview">Resulting Mermaid snippet:</label>
+                            <div id="connect-new-preview" class="form-control" style="white-space: pre; font-family: monospace; min-height: 3em;"></div>
+                        </div>
+                    </div>
                 </div>
                 <div class="form-actions" style="display:flex; gap:10px; justify-content:flex-end;">
                     <button id="connect-new-cancel" type="button">Cancel</button>
