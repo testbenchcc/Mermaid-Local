@@ -189,6 +189,12 @@ function render() {
                 } else {
                     console.warn('[script.js] SVGAnimations.setupAnimations not available');
                 }
+
+                if (typeof setupSvgPanZoom === 'function') {
+                    setupSvgPanZoom(svg);
+                } else if (window.setupSvgPanZoom) {
+                    window.setupSvgPanZoom(svg);
+                }
             });
         }, 100); // Small delay to ensure rendering is complete
     } catch (error) {
@@ -646,6 +652,126 @@ D --> B`;
     // Default content is considered clean until edited
     lastSavedContent = editor.textContent;
     isDirty = false;
+}
+
+function setupSvgPanZoom(svg) {
+    if (!svg) return;
+    if (svg._hasPanZoom) return;
+    svg._hasPanZoom = true;
+
+    function getBaseViewBox() {
+        const vb = svg.viewBox && svg.viewBox.baseVal;
+        if (vb && vb.width && vb.height) {
+            return { x: vb.x, y: vb.y, width: vb.width, height: vb.height };
+        }
+        try {
+            const bbox = svg.getBBox();
+            if (bbox && bbox.width && bbox.height) {
+                const box = { x: bbox.x, y: bbox.y, width: bbox.width, height: bbox.height };
+                svg.setAttribute('viewBox', `${box.x} ${box.y} ${box.width} ${box.height}`);
+                return box;
+            }
+        } catch (e) {
+            console.warn('Unable to compute SVG bounding box for pan/zoom', e);
+        }
+        const width = parseFloat(svg.getAttribute('width')) || 100;
+        const height = parseFloat(svg.getAttribute('height')) || 100;
+        const boxFallback = { x: 0, y: 0, width, height };
+        svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+        return boxFallback;
+    }
+
+    function applyViewBox(box) {
+        svg.setAttribute('viewBox', `${box.x} ${box.y} ${box.width} ${box.height}`);
+    }
+
+    const baseViewBox = getBaseViewBox();
+    let currentViewBox = { x: baseViewBox.x, y: baseViewBox.y, width: baseViewBox.width, height: baseViewBox.height };
+    applyViewBox(currentViewBox);
+
+    const minScale = 0.25;
+    const maxScale = 4;
+    let isPanning = false;
+    let lastClientX = 0;
+    let lastClientY = 0;
+
+    function onWheel(event) {
+        event.preventDefault();
+        const delta = event.deltaY || 0;
+        if (!delta) return;
+        const zoomOut = delta > 0;
+        const factor = zoomOut ? 1.1 : 0.9;
+
+        const minWidth = baseViewBox.width * minScale;
+        const maxWidth = baseViewBox.width * maxScale;
+        let newWidth = currentViewBox.width * factor;
+        if (newWidth < minWidth) newWidth = minWidth;
+        if (newWidth > maxWidth) newWidth = maxWidth;
+        const scale = newWidth / currentViewBox.width;
+        const newHeight = currentViewBox.height * scale;
+
+        const cx = currentViewBox.x + currentViewBox.width / 2;
+        const cy = currentViewBox.y + currentViewBox.height / 2;
+
+        currentViewBox = {
+            x: cx - newWidth / 2,
+            y: cy - newHeight / 2,
+            width: newWidth,
+            height: newHeight
+        };
+
+        applyViewBox(currentViewBox);
+    }
+
+    function onMouseDown(event) {
+        if (event.button !== 1) {
+            return;
+        }
+        event.preventDefault();
+        isPanning = true;
+        lastClientX = event.clientX;
+        lastClientY = event.clientY;
+        window.addEventListener('mousemove', onMouseMove);
+        window.addEventListener('mouseup', onMouseUp);
+    }
+
+    function onMouseMove(event) {
+        if (!isPanning) return;
+        event.preventDefault();
+        const dx = event.clientX - lastClientX;
+        const dy = event.clientY - lastClientY;
+        lastClientX = event.clientX;
+        lastClientY = event.clientY;
+
+        const rect = svg.getBoundingClientRect();
+        if (!rect.width || !rect.height) return;
+        const scaleX = currentViewBox.width / rect.width;
+        const scaleY = currentViewBox.height / rect.height;
+
+        currentViewBox = {
+            x: currentViewBox.x - dx * scaleX,
+            y: currentViewBox.y - dy * scaleY,
+            width: currentViewBox.width,
+            height: currentViewBox.height
+        };
+
+        applyViewBox(currentViewBox);
+    }
+
+    function onMouseUp(event) {
+        if (!isPanning) return;
+        event.preventDefault();
+        isPanning = false;
+        window.removeEventListener('mousemove', onMouseMove);
+        window.removeEventListener('mouseup', onMouseUp);
+    }
+
+    svg.addEventListener('wheel', onWheel, { passive: false });
+    svg.addEventListener('mousedown', onMouseDown);
+
+    if (typeof window !== 'undefined') {
+        window.setupSvgPanZoom = setupSvgPanZoom;
+    }
 }
 
 // Initialize resizable divider

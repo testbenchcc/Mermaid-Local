@@ -113,6 +113,6 @@ I clicked FS or `Field Service` expecting FS to be highlighted in the left panel
 
 # Improvements
 - [] Expand the functionality of the right click menu. Add more node shapes and associate them with names related to PLC programs. For example, in my current flowchar. I represent files, folder, databases, repositories, system states, systems, computers, scripts, programs, and departemnts. I would like a shape associated with each of these as well as an extra generic option. Add all of these to the menu, make it a sub-menu please.
-- [] Currently, the chart or graph is scaled by the size of the window panel.I would like to be able to zoom in and out, as well as move the chart around when click dragging. 
+- [x] Currently, the chart or graph is scaled by the size of the window panel.I would like to be able to zoom in and out, as well as move the chart around when click dragging. 
 - [] Display the git tag/release name in the title bar to the right of `Local Mermaid Studio`. I would like it to look like `Local Mermaid Studio build 22` where the `build 22` portion is subscript.
- - [x] Extend Connect New Node / Connect Existing Node modals to configure source node, link type, labels, and (for new nodes) shape, with a live Mermaid snippet preview.
+- [x] Extend Connect New Node / Connect Existing Node modals to configure source node, link type, labels, and (for new nodes) shape, with a live Mermaid snippet preview.
