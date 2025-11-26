@@ -1,0 +1,13 @@
+{
+  "name": "mermaid-local",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local Mermaid diagram editor with interactive node tools.",
+  "scripts": {
+    "build:mermaid": "node scripts/build-mermaid.js",
+    "postinstall": "npm run build:mermaid"
+  },
+  "dependencies": {
+    "mermaid": "^11.10.0"
+  }
+}
