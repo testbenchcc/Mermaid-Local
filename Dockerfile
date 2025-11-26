@@ -4,8 +4,17 @@ FROM python:3.12-slim
 # RUN apt-get update && apt-get install -y --no-install-recommends build-essential npm && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-COPY requirements.txt .
+# Install system dependencies (if needed in future). Keep minimal for now.
+RUN apt-get update \
+RUN apt-get install -y --no-install-recommends build-essential
+RUN apt-get install -y npm
+RUN rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
+
+COPY package.json ./
+RUN npm install
 
 COPY . .
 
