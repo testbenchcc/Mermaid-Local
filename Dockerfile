@@ -5,7 +5,7 @@ FROM python:3.12-slim
 
 WORKDIR /app
 # Install system dependencies (if needed in future). Keep minimal for now.
-RUN apt-get update \
+RUN apt-get update
 RUN apt-get install -y --no-install-recommends build-essential
 RUN apt-get install -y npm
 RUN rm -rf /var/lib/apt/lists/*
