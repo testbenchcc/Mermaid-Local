@@ -17,4 +17,4 @@ services:
     volumes:
       - /home/tbrinkhuis/docker/Mermaid-Local/data:/app/data
     networks:
-      - comm_net'
+      - comm_net
