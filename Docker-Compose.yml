@@ -16,3 +16,5 @@ services:
       - DB_PATH=/app/data/diagrams.db
     volumes:
       - /home/tbrinkhuis/docker/mermaid/data:/app/data
+    networks:
+      - comm_net
