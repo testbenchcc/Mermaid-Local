@@ -24,3 +24,10 @@ The toolbar provides New, Save, Load, and a Dark Mode toggle; there is no separa
 - Mermaid is managed via npm (see the `mermaid` dependency in `package.json`).
 - After running `npm install`, the `postinstall` hook will execute `npm run build:mermaid` to copy the bundled `mermaid.min.js` from `node_modules` into the `static/` folder.
 - The app continues to load `/static/mermaid.min.js` from `templates/index.html`, but that file is now generated from the npm package rather than maintained manually.
+
+## HTTP API
+
+- A FastAPI backend exposes a JSON API for creating, listing, searching, updating, and deleting saved diagrams.
+- By default the server listens on `http://127.0.0.1:8000` (or `http://localhost:8000`) when started with `uvicorn main:app --reload`.
+- See `docs/api-http.md` for the full list of endpoints and examples of retrieving existing diagrams and fetching a single diagram.
+- CORS is configured to allow requests from `https://notepad.husqy.net` and local development origins (`http://localhost`, `http://127.0.0.1:8000`).

@@ -1,3 +1,8 @@
+networks:
+  comm_net:
+    external: true
+    name: comm_net
+    
 services:
   mermaid-local:
     image: mermaid-local:latest
@@ -5,9 +10,6 @@ services:
       context: https://github.com/testbenchcc/Mermaid-Local.git
       dockerfile: Dockerfile
     container_name: mermaid-local
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --workers 4
-    ports:
-      - "8080:8000"
     restart: unless-stopped
     environment:
       - PYTHONUNBUFFERED=1

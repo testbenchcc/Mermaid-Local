@@ -1,12 +1,14 @@
 FROM python:3.12-slim
 
-# Install build deps only if you need them (example: npm for front-end build)
-# RUN apt-get update && apt-get install -y --no-install-recommends build-essential npm && rm -rf /var/lib/apt/lists/*
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
 
 WORKDIR /app
-# Install system dependencies (if needed in future). Keep minimal for now.
+
 RUN apt-get update
 RUN apt-get install -y --no-install-recommends build-essential
+RUN apt-get install -y git
+RUN apt-get install -y nano
 RUN apt-get install -y npm
 RUN rm -rf /var/lib/apt/lists/*
 
@@ -20,4 +22,5 @@ RUN npm install
 COPY . .
 
 EXPOSE 8000
+
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
