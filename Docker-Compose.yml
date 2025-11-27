@@ -15,4 +15,4 @@ services:
       - PYTHONUNBUFFERED=1
       - DB_PATH=/app/data/diagrams.db
     volumes:
-      - /home/tbrinkhuils/Mermaid-Local:/app/data
+      - /home/tbrinkhuis/docker/mermaid/data:/app/data
