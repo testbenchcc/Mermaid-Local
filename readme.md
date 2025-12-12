@@ -18,6 +18,7 @@ The toolbar provides New, Save, Load, and a Dark Mode toggle; there is no separa
   - Node click highlighting maps Mermaid SVG IDs (for example `flowchart-AUTO-1`) back to the textual node IDs in your diagrams so flowchart nodes like `Auto`, `ANY SD ALARM?`, and `ANY SOURCE?` correctly highlight their source lines in the editor.
   - The Connect Existing Node modal lists nodes by their Mermaid IDs (for example `REPO`, `SYSTEM`) derived from SVG element IDs, and always writes edges using these IDs; it only falls back to visible labels when an ID cannot be normalized.
   - The Connect New Node and Connect Existing Node modals support configuring the source node, link type, and link label (plus node ID, label, and shape for new nodes), and show a live Mermaid snippet preview of what will be appended to the editor; the Connect New Node modal uses a two-column layout with configuration fields on the left and the live result on the right, and the custom app modals are sized a bit wider to give more room for these controls and previews.
+  - The main preview SVG automatically resizes to match the preview pane on render, browser resize, and while dragging the editor/preview splitter so pan/zoom always uses the full panel area instead of the SVG's original aspect ratio.
 
 ## Mermaid dependency
 

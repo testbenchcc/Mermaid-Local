@@ -110,6 +110,8 @@ document.addEventListener('DOMContentLoaded', function() {
             render(); // Render immediately when auto-render is turned on
         }
     });
+
+    window.addEventListener('resize', resizeSvgToPreview);
 });
 
 let isDirty = false;
@@ -165,6 +167,8 @@ function render() {
             const svgs = document.querySelectorAll('#preview svg');
             console.log('Found SVGs after render:', svgs.length);
             
+            resizeSvgToPreview();
+
             svgs.forEach(svg => {
                 // Add statediagram class to match sampleSVG.html
                 if (!svg.classList.contains('statediagram')) {
@@ -654,6 +658,17 @@ D --> B`;
     isDirty = false;
 }
 
+function resizeSvgToPreview() {
+    const preview = document.getElementById('preview');
+    if (!preview) return;
+    const svg = preview.querySelector('svg');
+    if (!svg) return;
+    const rect = preview.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+    svg.style.width = rect.width + 'px';
+    svg.style.height = rect.height + 'px';
+}
+
 function setupSvgPanZoom(svg) {
     if (!svg) return;
     if (svg._hasPanZoom) return;
@@ -805,6 +820,7 @@ function initResizer() {
         editorPane.style.width = `${newEditorWidthPercent}%`;
         previewPane.style.width = `${100 - newEditorWidthPercent}%`;
         lastX = e.clientX;
+        resizeSvgToPreview();
     }
     
     function stopResize() {
